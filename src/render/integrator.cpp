@@ -229,6 +229,7 @@ SamplingIntegrator<Float, Spectrum>::render(Scene *scene,
                     render_block(scene, sensor, sampler, block, aovs.get(),
                                  spp_per_pass, seed, block_id, block_size);
 
+                    sampler->schedule_state();
                     film->put_block(block);
 
                     /* Critical section: update progress bar */

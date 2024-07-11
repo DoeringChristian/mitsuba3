@@ -154,6 +154,9 @@ public:
     MI_IMPORT_BASE(BSDF, m_flags, m_components)
     MI_IMPORT_TYPES(Texture)
 
+    DR_TRAVERSE_CB_BASE(Base, m_diffuse_reflectance, m_specular_reflectance,
+                        m_specular_sampling_weight);
+
     SmoothPlastic(const Properties &props) : Base(props) {
         // Specifies the internal index of refraction at the interface
         ScalarFloat int_ior = lookup_ior(props, "int_ior", "polypropylene");

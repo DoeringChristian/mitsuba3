@@ -59,6 +59,16 @@ class RegularSpectrum final : public Texture<Float, Spectrum> {
 public:
     MI_IMPORT_TYPES(Texture)
 
+    
+    void traverse_1_cb_ro(void *payload,
+                          void (*fn)(void *, uint64_t)) const override {
+        drjit ::traverse_1_fn_ro(m_distr, payload, fn);
+    }
+    void traverse_1_cb_rw(void *payload,
+                          uint64_t (*fn)(void *, uint64_t)) override {
+        drjit ::traverse_1_fn_rw(m_distr, payload, fn);
+    }
+
 public:
     RegularSpectrum(const Properties &props) : Texture(props) {
         ScalarVector2f wavelength_range(

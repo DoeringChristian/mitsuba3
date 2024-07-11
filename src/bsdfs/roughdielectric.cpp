@@ -159,6 +159,10 @@ public:
     MI_IMPORT_BASE(BSDF, m_flags, m_components)
     MI_IMPORT_TYPES(Texture, MicrofacetDistribution)
 
+    DR_TRAVERSE_CB_BASE(Base, m_specular_reflectance, m_specular_transmittance,
+                        m_alpha_u, m_alpha_v, m_eta, m_inv_eta,
+                        m_sample_visible);
+
     RoughDielectric(const Properties &props) : Base(props) {
         if (props.has_property("specular_reflectance"))
             m_specular_reflectance   = props.texture<Texture>("specular_reflectance", 1.f);

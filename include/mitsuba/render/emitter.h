@@ -52,6 +52,14 @@ MI_DECLARE_ENUM_OPERATORS(EmitterFlags)
 template <typename Float, typename Spectrum>
 class MI_EXPORT_LIB Emitter : public Endpoint<Float, Spectrum> {
 public:
+    void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t)) const override {
+        // std::cout << "traversing emitter" << std::endl;
+        Endpoint<Float, Spectrum>::traverse_1_cb_ro(payload, fn);
+    }
+
+    void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t)) override {
+        Endpoint<Float, Spectrum>::traverse_1_cb_rw(payload, fn);
+    }
     MI_IMPORT_BASE(Endpoint, m_shape)
     MI_IMPORT_TYPES()
 
