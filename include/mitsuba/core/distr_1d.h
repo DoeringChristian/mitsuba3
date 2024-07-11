@@ -283,7 +283,7 @@ private:
  * initialization. The associated scale factor can be retrieved using the
  * function \ref normalization().
  */
-template <typename Value> struct ContinuousDistribution {
+template <typename Value> struct ContinuousDistribution: drjit::TraversableBase {
     using Float = std::conditional_t<dr::is_static_array_v<Value>,
                                      dr::value_t<Value>, Value>;
     using FloatStorage = DynamicBuffer<Float>;
@@ -297,6 +297,30 @@ template <typename Value> struct ContinuousDistribution {
     using ScalarVector2u = Vector<uint32_t, 2>;
 
 public:
+    DR_TRAVERSE_CB(m_pdf, m_cdf, m_integral, m_normalization, m_interval_size,
+                   m_inv_interval_size, m_valid);
+
+//     void traverse_1_cb_ro(void *payload,
+//                           void (*fn)(void *, uint64_t)) const override {
+//         drjit ::traverse_1_fn_ro(m_pdf, payload, fn);
+//         drjit ::traverse_1_fn_ro(m_cdf, payload, fn);
+//         drjit ::traverse_1_fn_ro(m_integral, payload, fn);
+//         drjit ::traverse_1_fn_ro(m_normalization, payload, fn);
+//         drjit ::traverse_1_fn_ro(m_interval_size, payload, fn);
+//         drjit ::traverse_1_fn_ro(m_inv_interval_size, payload, fn);
+//         drjit ::traverse_1_fn_ro(m_valid, payload, fn);
+// }
+// void traverse_1_cb_rw(void *payload,
+//                       uint64_t (*fn)(void *, uint64_t)) override {
+//     drjit ::traverse_1_fn_rw(m_pdf, payload, fn);
+//     drjit ::traverse_1_fn_rw(m_cdf, payload, fn);
+//     drjit ::traverse_1_fn_rw(m_integral, payload, fn);
+//     drjit ::traverse_1_fn_rw(m_normalization, payload, fn);
+//     drjit ::traverse_1_fn_rw(m_interval_size, payload, fn);
+//     drjit ::traverse_1_fn_rw(m_inv_interval_size, payload, fn);
+//     drjit ::traverse_1_fn_rw(m_valid, payload, fn);
+// }
+    
     /// Create an uninitialized ContinuousDistribution instance
     ContinuousDistribution() { }
 
@@ -615,7 +639,7 @@ private:
  * initialization. The associated scale factor can be retrieved using the
  * function \ref normalization().
  */
-template <typename Value> struct IrregularContinuousDistribution {
+template <typename Value> struct IrregularContinuousDistribution : public drjit::TraversableBase{
     using Float = std::conditional_t<dr::is_static_array_v<Value>,
                                      dr::value_t<Value>, Value>;
     using FloatStorage = DynamicBuffer<Float>;
@@ -629,6 +653,8 @@ template <typename Value> struct IrregularContinuousDistribution {
     using ScalarVector2u = dr::Array<uint32_t, 2>;
 
 public:
+    DR_TRAVERSE_CB(m_nodes, m_pdf, m_cdf, m_integral, m_normalization, m_valid);
+
     /// Create an uninitialized IrregularContinuousDistribution instance
     IrregularContinuousDistribution() { }
 

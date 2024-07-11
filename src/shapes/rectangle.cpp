@@ -88,6 +88,21 @@ The following XML snippet showcases a simple example of a textured rectangle:
 template <typename Float, typename Spectrum>
 class Rectangle final : public Shape<Float, Spectrum> {
 public:
+    void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t)) const override {
+        Shape<Float, Spectrum>::traverse_1_cb_ro(payload, fn);
+        // std::cout << "traversing Rectangle" << std::endl;
+        drjit::traverse_1_fn_ro(m_frame, payload, fn);
+        drjit::traverse_1_fn_ro(m_inv_surface_area, payload, fn);
+    }
+
+    void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t)) override {
+        Shape<Float, Spectrum>::traverse_1_cb_rw(payload, fn);
+        // std::cout << "rwtraversing Rectangle" << std::endl;
+        drjit::traverse_1_fn_rw(m_frame, payload, fn);
+        drjit::traverse_1_fn_rw(m_inv_surface_area, payload, fn);
+        // std::cout << "done rwtraversing Rectangle" << std::endl;
+    }
+    
     MI_IMPORT_BASE(Shape, m_to_world, m_to_object, m_is_instance,
                    m_discontinuity_types, m_shape_type, initialize, mark_dirty,
                    get_children_string, parameters_grad_enabled)

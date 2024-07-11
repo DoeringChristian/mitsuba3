@@ -47,6 +47,15 @@ In monochrome modes, this spectrum represents a constant luminance value.
 template <typename Float, typename Spectrum>
 class SRGBReflectanceSpectrum final : public Texture<Float, Spectrum> {
 public:
+    void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t)) const override {
+        // std::cout << "traversing SRGBReflectanceSpectrum" << std::endl;
+        traverse_1_fn_ro(m_value, payload, fn);
+    }
+
+    void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t)) override {
+        // std::cout << "rwtraversing SRGBReflectanceSpectrum" << std::endl;
+        traverse_1_fn_rw(m_value, payload, fn);
+    }
     MI_IMPORT_TYPES(Texture)
 
     SRGBReflectanceSpectrum(const Properties &props) : Texture(props) {

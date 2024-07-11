@@ -17,6 +17,26 @@ NAMESPACE_BEGIN(mitsuba)
 template <typename Float, typename Spectrum>
 class MI_EXPORT_LIB Sensor : public Endpoint<Float, Spectrum> {
 public:
+    void traverse_1_cb_ro(void *payload,
+                          void (*fn)(void *, uint64_t)) const override {
+        Endpoint<Float, Spectrum>::traverse_1_cb_ro(payload, fn);
+        // std::cout << "traversing sensor" << std::endl;
+        drjit::traverse_1_fn_ro(m_film.get(), payload, fn);
+        drjit::traverse_1_fn_ro(m_sampler.get(), payload, fn);
+    }
+
+    void traverse_1_cb_rw(void *payload,
+                          uint64_t (*fn)(void *, uint64_t)) override {
+        Endpoint<Float, Spectrum>::traverse_1_cb_rw(payload, fn);
+        {
+            auto *tmp = m_film.get();
+            drjit::traverse_1_fn_rw(tmp, payload, fn);
+        }
+        {
+            auto *tmp = m_sampler.get();
+            drjit::traverse_1_fn_rw(tmp, payload, fn);
+        }
+    }
     MI_IMPORT_TYPES(Film, Sampler, Texture)
     MI_IMPORT_BASE(Endpoint, sample_ray, m_needs_sample_3)
 
@@ -189,6 +209,18 @@ class MI_EXPORT_LIB ProjectiveCamera : public Sensor<Float, Spectrum> {
 public:
     MI_IMPORT_BASE(Sensor)
     MI_IMPORT_TYPES()
+    void traverse_1_cb_ro(void *payload,
+                          void (*fn)(void *, uint64_t)) const override {
+        Base::traverse_1_cb_ro(payload, fn);
+        // std::cout << "traversing ProjectiveCamera" << std::endl;
+        drjit::traverse_1_fn_ro(m_focus_distance, payload, fn);
+    }
+
+    void traverse_1_cb_rw(void *payload,
+                          uint64_t (*fn)(void *, uint64_t)) override {
+        Base::traverse_1_cb_rw(payload, fn);
+        drjit::traverse_1_fn_rw(m_focus_distance, payload, fn);
+    }
 
     virtual ~ProjectiveCamera();
 

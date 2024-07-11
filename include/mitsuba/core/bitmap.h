@@ -20,6 +20,15 @@ NAMESPACE_BEGIN(mitsuba)
  */
 class MI_EXPORT_LIB Bitmap : public Object {
 public:
+    void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t)) const override {
+        // std::cout << "traversing Bitmap" << std::endl;
+        traverse_1_fn_ro(m_size, payload, fn);
+    }
+
+    void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t)) override {
+        // std::cout << "rwtraversing Bitmap" << std::endl;
+        traverse_1_fn_rw(m_size, payload, fn);
+    }
     using Float = float;
     MI_IMPORT_CORE_TYPES()
     using ReconstructionFilter = mitsuba::ReconstructionFilter<Float, Color<Float, 3>>;
