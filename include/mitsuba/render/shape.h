@@ -1,16 +1,17 @@
 #pragma once
 
+#include "mitsuba/render/bsdf.h"
 #include <drjit/call.h>
-#include <mitsuba/render/records.h>
-#include <mitsuba/core/spectrum.h>
-#include <mitsuba/core/transform.h>
+#include <drjit/packet.h>
 #include <mitsuba/core/bbox.h>
 #include <mitsuba/core/field.h>
-#include <drjit/packet.h>
+#include <mitsuba/core/spectrum.h>
+#include <mitsuba/core/transform.h>
+#include <mitsuba/render/records.h>
 #include <unordered_map>
 
 #if defined(MI_ENABLE_CUDA)
-#  include <mitsuba/render/optix/common.h>
+#include <mitsuba/render/optix/common.h>
 #endif
 
 NAMESPACE_BEGIN(mitsuba)
@@ -192,10 +193,10 @@ struct SilhouetteSample : public PositionSample<Float_, Spectrum_> {
      * \brief Spawn a ray on the silhouette point in the direction of \ref d
      *
      * The ray origin is offset in the direction of the segment (\ref d) aswell
-     * as in the in the direction of the silhouette normal (\ref n). Without this
-     * offsetting, during a ray intersection, the ray could potentially find
-     * an intersection point at its origin due to numerical instabilities in
-     * the intersection routines.
+     * as in the in the direction of the silhouette normal (\ref n). Without
+     * this offsetting, during a ray intersection, the ray could potentially
+     * find an intersection point at its origin due to numerical instabilities
+     * in the intersection routines.
      */
     Ray3f spawn_ray() const {
         Vector3f o_offset = (1 + dr::max(dr::abs(p))) *
@@ -221,12 +222,37 @@ struct SilhouetteSample : public PositionSample<Float_, Spectrum_> {
 template <typename Float, typename Spectrum>
 class MI_EXPORT_LIB Shape : public Object {
 public:
+
+    void traverse_1_cb_ro(void *payload,
+                          void (*fn)(void *, uint64_t)) const override {
+        // std::cout << "traversing Shape" << std::endl;
+        drjit::traverse_1_fn_ro(m_bsdf, payload, fn);
+        drjit::traverse_1_fn_ro(m_emitter, payload, fn);
+        drjit::traverse_1_fn_ro(m_sensor, payload, fn);
+        drjit::traverse_1_fn_ro(m_interior_medium, payload, fn);
+        drjit::traverse_1_fn_ro(m_exterior_medium, payload, fn);
+        drjit::traverse_1_fn_ro(m_to_world, payload, fn);
+        drjit::traverse_1_fn_ro(m_to_object, payload, fn);
+    }
+
+    void traverse_1_cb_rw(void *payload,
+                          uint64_t (*fn)(void *, uint64_t)) override {
+        // std::cout << "rwtraversing Shape" << std::endl;
+        drjit::traverse_1_fn_rw(m_bsdf, payload, fn);
+        drjit::traverse_1_fn_rw(m_emitter, payload, fn);
+        drjit::traverse_1_fn_rw(m_sensor, payload, fn);
+        drjit::traverse_1_fn_rw(m_interior_medium, payload, fn);
+        drjit::traverse_1_fn_rw(m_exterior_medium, payload, fn);
+        drjit::traverse_1_fn_rw(m_to_world, payload, fn);
+        drjit::traverse_1_fn_rw(m_to_object, payload, fn);
+    }
+
     MI_IMPORT_TYPES(BSDF, Medium, Emitter, Sensor, MeshAttribute, Texture)
 
     // Use 32 bit indices to keep track of indices to conserve memory
     using ScalarIndex = uint32_t;
     using ScalarSize  = uint32_t;
-    using Index = UInt32;
+    using Index       = UInt32;
     using ScalarRay3f = Ray<ScalarPoint3f, Spectrum>;
 
     /// Destructor
@@ -266,7 +292,8 @@ public:
      * \return
      *     The probability density per unit area
      */
-    virtual Float pdf_position(const PositionSample3f &ps, Mask active = true) const;
+    virtual Float pdf_position(const PositionSample3f &ps,
+                               Mask active = true) const;
 
     /**
      * \brief Sample a direction towards this shape with respect to solid
@@ -295,7 +322,8 @@ public:
      * \return
      *     A \ref DirectionSample instance describing the generated sample
      */
-    virtual DirectionSample3f sample_direction(const Interaction3f &it, const Point2f &sample,
+    virtual DirectionSample3f sample_direction(const Interaction3f &it,
+                                               const Point2f &sample,
                                                Mask active = true) const;
 
     /**
@@ -310,7 +338,8 @@ public:
      * \return
      *     The probability density per unit solid angle
      */
-    virtual Float pdf_direction(const Interaction3f &it, const DirectionSample3f &ds,
+    virtual Float pdf_direction(const Interaction3f &it,
+                                const DirectionSample3f &ds,
                                 Mask active = true) const;
 
     //! @}
@@ -437,11 +466,9 @@ public:
      *      A boundary segment on the silhouette of the shape as seen from
      *      \c viewpoint.
      */
-    virtual SilhouetteSample3f primitive_silhouette_projection(const Point3f &viewpoint,
-                                                               const SurfaceInteraction3f &si,
-                                                               uint32_t flags,
-                                                               Float sample,
-                                                               Mask active = true) const;
+    virtual SilhouetteSample3f primitive_silhouette_projection(
+        const Point3f &viewpoint, const SurfaceInteraction3f &si,
+        uint32_t flags, Float sample, Mask active = true) const;
 
     /**
      * \brief Precompute the visible silhouette of this shape for a given
@@ -495,10 +522,9 @@ public:
      *      A boundary segment on the silhouette of the shape as seen from
      *      \c viewpoint.
      */
-    virtual SilhouetteSample3f sample_precomputed_silhouette(const Point3f &viewpoint,
-                                                             Index sample1,
-                                                             Float sample2,
-                                                             Mask active = true) const;
+    virtual SilhouetteSample3f
+    sample_precomputed_silhouette(const Point3f &viewpoint, Index sample1,
+                                  Float sample2, Mask active = true) const;
 
     //! @}
     // =============================================================
@@ -523,12 +549,13 @@ public:
      *
      * \param prim_index
      *     Index of the primitive to be intersected. This index is ignored by a
-     *     shape that contains a single primitive. Otherwise, if no index is provided,
-     *     the ray intersection will be performed on the shape's first primitive at index 0.
+     *     shape that contains a single primitive. Otherwise, if no index is
+     * provided, the ray intersection will be performed on the shape's first
+     * primitive at index 0.
      */
-    virtual PreliminaryIntersection3f ray_intersect_preliminary(const Ray3f &ray,
-                                                                ScalarIndex prim_index = 0,
-                                                                Mask active = true) const;
+    virtual PreliminaryIntersection3f
+    ray_intersect_preliminary(const Ray3f &ray, ScalarIndex prim_index = 0,
+                              Mask active = true) const;
     /**
      * \brief Fast ray shadow test
      *
@@ -537,7 +564,8 @@ public:
      * No details about the intersection are returned, hence the function is
      * only useful for visibility queries. For most shapes, the implementation
      * will simply forward the call to \ref ray_intersect_preliminary(). When
-     * the shape actually contains a nested kd-tree, some optimizations are possible.
+     * the shape actually contains a nested kd-tree, some optimizations are
+     * possible.
      *
      * \param ray
      *     The ray to be tested for an intersection
@@ -545,19 +573,22 @@ public:
      * \param prim_index
      *     Index of the primitive to be intersected
      */
-    virtual Mask ray_test(const Ray3f &ray, ScalarIndex prim_index = 0, Mask active = true) const;
+    virtual Mask ray_test(const Ray3f &ray, ScalarIndex prim_index = 0,
+                          Mask active = true) const;
 
     /**
-     * \brief Compute and return detailed information related to a surface interaction
+     * \brief Compute and return detailed information related to a surface
+     * interaction
      *
      * The implementation should at most compute the fields \c p, \c uv, \c n,
-     * \c sh_frame.n, \c dp_du, \c dp_dv, \c dn_du and \c dn_dv. The \c flags parameter
-     * specifies which of those fields should be computed.
+     * \c sh_frame.n, \c dp_du, \c dp_dv, \c dn_du and \c dn_dv. The \c flags
+     * parameter specifies which of those fields should be computed.
      *
-     * The fields \c t, \c time, \c wavelengths, \c shape, \c prim_index, \c instance,
-     * will already have been initialized by the caller. The field \c wi is initialized
-     * by the caller following the call to \ref compute_surface_interaction(), and
-     * \c duv_dx, and \c duv_dy are left uninitialized.
+     * The fields \c t, \c time, \c wavelengths, \c shape, \c prim_index, \c
+     * instance, will already have been initialized by the caller. The field \c
+     * wi is initialized by the caller following the call to \ref
+     * compute_surface_interaction(), and \c duv_dx, and \c duv_dy are left
+     * uninitialized.
      *
      * \param ray
      *      Ray associated with the ray intersection
@@ -571,11 +602,10 @@ public:
      * \return
      *      A data structure containing the detailed information
      */
-    virtual SurfaceInteraction3f compute_surface_interaction(const Ray3f &ray,
-                                                             const PreliminaryIntersection3f &pi,
-                                                             uint32_t ray_flags = +RayFlags::All,
-                                                             uint32_t recursion_depth = 0,
-                                                             Mask active = true) const;
+    virtual SurfaceInteraction3f compute_surface_interaction(
+        const Ray3f &ray, const PreliminaryIntersection3f &pi,
+        uint32_t ray_flags = +RayFlags::All, uint32_t recursion_depth = 0,
+        Mask active = true) const;
 
     /**
      * \brief Test for an intersection and return detailed information
@@ -591,7 +621,7 @@ public:
      */
     SurfaceInteraction3f ray_intersect(const Ray3f &ray,
                                        uint32_t ray_flags = +RayFlags::All,
-                                       Mask active = true) const;
+                                       Mask active        = true) const;
 
     //! @}
     // =============================================================
@@ -616,21 +646,21 @@ public:
     ray_intersect_preliminary_scalar(const ScalarRay3f &ray) const;
     virtual bool ray_test_scalar(const ScalarRay3f &ray) const;
 
-    /// Macro to declare packet versions of the scalar routine above
-    #define MI_DECLARE_RAY_INTERSECT_PACKET(N)                                  \
-        using FloatP##N   = dr::Packet<dr::scalar_t<Float>, N>;                 \
-        using UInt32P##N  = dr::uint32_array_t<FloatP##N>;                      \
-        using MaskP##N    = dr::mask_t<FloatP##N>;                              \
-        using Point2fP##N = Point<FloatP##N, 2>;                                \
-        using Point3fP##N = Point<FloatP##N, 3>;                                \
-        using Ray3fP##N   = Ray<Point3fP##N, Spectrum>;                         \
-        virtual std::tuple<FloatP##N, Point2fP##N, UInt32P##N, UInt32P##N>      \
-        ray_intersect_preliminary_packet(const Ray3fP##N &ray,                  \
-                                         ScalarIndex prim_index = 0,            \
-                                         MaskP##N active = true) const;         \
-        virtual MaskP##N ray_test_packet(const Ray3fP##N &ray,                  \
-                                         ScalarIndex prim_index = 0,            \
-                                         MaskP##N active = true) const;
+/// Macro to declare packet versions of the scalar routine above
+#define MI_DECLARE_RAY_INTERSECT_PACKET(N)                                     \
+    using FloatP##N   = dr::Packet<dr::scalar_t<Float>, N>;                    \
+    using UInt32P##N  = dr::uint32_array_t<FloatP##N>;                         \
+    using MaskP##N    = dr::mask_t<FloatP##N>;                                 \
+    using Point2fP##N = Point<FloatP##N, 2>;                                   \
+    using Point3fP##N = Point<FloatP##N, 3>;                                   \
+    using Ray3fP##N   = Ray<Point3fP##N, Spectrum>;                            \
+    virtual std::tuple<FloatP##N, Point2fP##N, UInt32P##N, UInt32P##N>         \
+    ray_intersect_preliminary_packet(const Ray3fP##N &ray,                     \
+                                     ScalarIndex prim_index = 0,               \
+                                     MaskP##N active        = true) const;            \
+    virtual MaskP##N ray_test_packet(const Ray3fP##N &ray,                     \
+                                     ScalarIndex prim_index = 0,               \
+                                     MaskP##N active        = true) const;
 
     MI_DECLARE_RAY_INTERSECT_PACKET(4)
     MI_DECLARE_RAY_INTERSECT_PACKET(8)
@@ -685,10 +715,12 @@ public:
      * \param name
      *     Name of the attribute
      */
-    virtual Mask has_attribute(const std::string &name, Mask active = true) const;
+    virtual Mask has_attribute(const std::string &name,
+                               Mask active = true) const;
 
     /**
-     * \brief Evaluate a specific shape attribute at the given surface interaction.
+     * \brief Evaluate a specific shape attribute at the given surface
+     * interaction.
      *
      * Shape attributes are user-provided fields that provide extra
      * information at an intersection. An example of this would be a per-vertex
@@ -708,11 +740,12 @@ public:
                                                Mask active = true) const;
 
     /**
-     * \brief Monochromatic evaluation of a shape attribute at the given surface interaction
+     * \brief Monochromatic evaluation of a shape attribute at the given surface
+     * interaction
      *
-     * This function differs from \ref eval_attribute() in that it provided raw access to
-     * scalar intensity/reflectance values without any color processing (e.g.
-     * spectral upsampling).
+     * This function differs from \ref eval_attribute() in that it provided raw
+     * access to scalar intensity/reflectance values without any color
+     * processing (e.g. spectral upsampling).
      *
      * \param name
      *     Name of the attribute to evaluate
@@ -728,11 +761,12 @@ public:
                                    Mask active = true) const;
 
     /**
-     * \brief Trichromatic evaluation of a shape attribute at the given surface interaction
+     * \brief Trichromatic evaluation of a shape attribute at the given surface
+     * interaction
      *
-     * This function differs from \ref eval_attribute() in that it provided raw access to
-     * RGB intensity/reflectance values without any additional color processing
-     * (e.g. RGB-to-spectral upsampling).
+     * This function differs from \ref eval_attribute() in that it provided raw
+     * access to RGB intensity/reflectance values without any additional color
+     * processing (e.g. RGB-to-spectral upsampling).
      *
      * \param name
      *     Name of the attribute to evaluate
@@ -755,9 +789,10 @@ public:
      * mapping is bijective.
      * The default implementation throws.
      */
-    virtual SurfaceInteraction3f eval_parameterization(const Point2f &uv,
-                                                       uint32_t ray_flags = +RayFlags::All,
-                                                       Mask active = true) const;
+    virtual SurfaceInteraction3f
+    eval_parameterization(const Point2f &uv,
+                          uint32_t ray_flags = +RayFlags::All,
+                          Mask active        = true) const;
 
     //! @}
     // =============================================================
@@ -770,7 +805,7 @@ public:
     std::string id() const override { return m_id; }
 
     /// Set a string identifier
-    void set_id(const std::string& id) override { m_id = id; };
+    void set_id(const std::string &id) override { m_id = id; };
 
     /// Is this shape a triangle mesh?
     bool is_mesh() const { return (shape_type() == +ShapeType::Mesh); };
@@ -779,20 +814,28 @@ public:
     uint32_t shape_type() const { return (uint32_t) m_shape_type; }
 
     /// Is this shape a shapegroup?
-    bool is_shapegroup() const { return class_()->name() == "ShapeGroupPlugin"; };
+    bool is_shapegroup() const {
+        return class_()->name() == "ShapeGroupPlugin";
+    };
 
     /// Is this shape an instance?
     bool is_instance() const { return (shape_type() == +ShapeType::Instance); };
 
     /// Does the surface of this shape mark a medium transition?
-    bool is_medium_transition() const { return m_interior_medium.get() != nullptr ||
-                                               m_exterior_medium.get() != nullptr; }
+    bool is_medium_transition() const {
+        return m_interior_medium.get() != nullptr ||
+               m_exterior_medium.get() != nullptr;
+    }
 
     /// Return the medium that lies on the interior of this shape
-    const Medium *interior_medium(Mask /*unused*/ = true) const { return m_interior_medium.get(); }
+    const Medium *interior_medium(Mask /*unused*/ = true) const {
+        return m_interior_medium.get();
+    }
 
     /// Return the medium that lies on the exterior of this shape
-    const Medium *exterior_medium(Mask /*unused*/ = true) const { return m_exterior_medium.get(); }
+    const Medium *exterior_medium(Mask /*unused*/ = true) const {
+        return m_exterior_medium.get();
+    }
 
     /// Return the shape's BSDF
     const BSDF *bsdf(Mask /*unused*/ = true) const { return m_bsdf.get(); }
@@ -804,7 +847,9 @@ public:
     bool is_emitter() const { return (bool) m_emitter; }
 
     /// Return the area emitter associated with this shape (if any)
-    const Emitter *emitter(Mask /*unused*/ = true) const { return m_emitter.get(); }
+    const Emitter *emitter(Mask /*unused*/ = true) const {
+        return m_emitter.get();
+    }
 
     /// Return the area emitter associated with this shape (if any)
     Emitter *emitter(Mask /*unused*/ = true) { return m_emitter.get(); }
@@ -813,7 +858,9 @@ public:
     bool is_sensor() const { return (bool) m_sensor; }
 
     /// Return the area sensor associated with this shape (if any)
-    const Sensor *sensor(Mask /*unused*/ = true) const { return m_sensor.get(); }
+    const Sensor *sensor(Mask /*unused*/ = true) const {
+        return m_sensor.get();
+    }
     /// Return the area sensor associated with this shape (if any)
     Sensor *sensor(Mask /*unused*/ = true) { return m_sensor.get(); }
 
@@ -834,7 +881,6 @@ public:
      */
     virtual ScalarSize effective_primitive_count() const;
 
-
 #if defined(MI_ENABLE_EMBREE)
     /// Return the Embree version of this shape
     virtual RTCGeometry embree_geometry(RTCDevice device);
@@ -842,12 +888,13 @@ public:
 
 #if defined(MI_ENABLE_CUDA)
     /**
-     * \brief Populates the GPU data buffer, used in the OptiX Hitgroup sbt records.
+     * \brief Populates the GPU data buffer, used in the OptiX Hitgroup sbt
+     * records.
      *
      * \remark
      *      Actual implementations of this method should allocate the field \ref
-     *      m_optix_data_ptr on the GPU and populate it with the OptiX representation
-     *      of the class.
+     *      m_optix_data_ptr on the GPU and populate it with the OptiX
+     * representation of the class.
      *
      * The default implementation throws an exception.
      */
@@ -858,14 +905,16 @@ public:
      *
      * \param build_input
      *     A reference to the build input to be filled. The field
-     *     build_input.type has to be set, along with the associated members. For
-     *     now, Mitsuba only supports the types \ref OPTIX_BUILD_INPUT_TYPE_CUSTOM_PRIMITIVES
-     *     and \ref OPTIX_BUILD_INPUT_TYPE_TRIANGLES.
+     *     build_input.type has to be set, along with the associated members.
+     * For now, Mitsuba only supports the types \ref
+     * OPTIX_BUILD_INPUT_TYPE_CUSTOM_PRIMITIVES and \ref
+     * OPTIX_BUILD_INPUT_TYPE_TRIANGLES.
      *
-     * The default implementation assumes that an implicit Shape (custom primitive
-     * build type) is begin constructed, with its GPU data stored at \ref m_optix_data_ptr.
+     * The default implementation assumes that an implicit Shape (custom
+     * primitive build type) is begin constructed, with its GPU data stored at
+     * \ref m_optix_data_ptr.
      */
-    virtual void optix_build_input(OptixBuildInput& build_input) const;
+    virtual void optix_build_input(OptixBuildInput &build_input) const;
 
     /**
      * \brief Prepares and fills the \ref OptixInstance(s) associated with this
@@ -889,14 +938,15 @@ public:
      *     is part of an Instance.
      *
      * \param transf
-     *     The current to_world transformation (should allow for recursive instancing).
+     *     The current to_world transformation (should allow for recursive
+     * instancing).
      *
      * The default implementation throws an exception.
      */
-    virtual void optix_prepare_ias(const OptixDeviceContext& /*context*/,
-                                   std::vector<OptixInstance>& /*instances*/,
+    virtual void optix_prepare_ias(const OptixDeviceContext & /*context*/,
+                                   std::vector<OptixInstance> & /*instances*/,
                                    uint32_t /*instance_id*/,
-                                   const ScalarTransform4f& /*transf*/);
+                                   const ScalarTransform4f & /*transf*/);
 
     /**
      * \brief Creates and appends the HitGroupSbtRecord(s) associated with this
@@ -920,12 +970,14 @@ public:
      * program_groups array (the actual program group index is inferred by the
      * type of the Shape, see \ref get_shape_descr_idx()).
      */
-    virtual void optix_fill_hitgroup_records(std::vector<HitGroupSbtRecord> &hitgroup_records,
-                                             const OptixProgramGroup *program_groups);
+    virtual void optix_fill_hitgroup_records(
+        std::vector<HitGroupSbtRecord> &hitgroup_records,
+        const OptixProgramGroup *program_groups);
 #endif
 
     void traverse(TraversalCallback *callback) override;
-    void parameters_changed(const std::vector<std::string> &/*keys*/ = {}) override;
+    void
+    parameters_changed(const std::vector<std::string> & /*keys*/ = {}) override;
 
     /// Return whether the shape's geometry has changed
     bool dirty() const { return m_dirty; }
@@ -952,11 +1004,12 @@ public:
 
 protected:
     Shape(const Properties &props);
-    inline Shape() { }
+    inline Shape() {}
 
 protected:
     virtual void initialize();
     std::string get_children_string() const;
+
 protected:
     ref<BSDF> m_bsdf;
     ref<Emitter> m_emitter;
@@ -980,7 +1033,7 @@ protected:
 
 #if defined(MI_ENABLE_CUDA)
     /// OptiX hitgroup data buffer
-    void* m_optix_data_ptr = nullptr;
+    void *m_optix_data_ptr = nullptr;
 #endif
 
 protected:
@@ -1000,9 +1053,11 @@ std::ostream &operator<<(std::ostream &os,
                          const SilhouetteSample<Float, Spectrum> &ss) {
     os << "SilhouetteSample[" << std::endl
        << "  p = " << string::indent(ss.p, 6) << "," << std::endl
-       << "  discontinuity_type = " << string::indent(ss.discontinuity_type, 23) << "," << std::endl
+       << "  discontinuity_type = " << string::indent(ss.discontinuity_type, 23)
+       << "," << std::endl
        << "  d = " << string::indent(ss.d, 6) << "," << std::endl
-       << "  silhouette_d = " << string::indent(ss.silhouette_d, 17) << "," << std::endl
+       << "  silhouette_d = " << string::indent(ss.silhouette_d, 17) << ","
+       << std::endl
        << "  n = " << string::indent(ss.n, 6) << "," << std::endl
        << "  prim_index = " << ss.prim_index << "," << std::endl
        << "  scene_index = " << ss.scene_index << "," << std::endl
@@ -1023,56 +1078,65 @@ std::ostream &operator<<(std::ostream &os,
 MI_EXTERN_CLASS(Shape)
 NAMESPACE_END(mitsuba)
 
-#define MI_IMPLEMENT_RAY_INTERSECT_PACKET(N)                                                \
-    using typename Base::FloatP##N;                                                         \
-    using typename Base::UInt32P##N;                                                        \
-    using typename Base::MaskP##N;                                                          \
-    using typename Base::Point2fP##N;                                                       \
-    using typename Base::Point3fP##N;                                                       \
-    using typename Base::Ray3fP##N;                                                         \
-    std::tuple<FloatP##N, Point2fP##N, UInt32P##N, UInt32P##N>                              \
-    ray_intersect_preliminary_packet(                                                       \
-        const Ray3fP##N &ray, ScalarIndex prim_index, MaskP##N active) const override {     \
-        (void) ray; (void) prim_index; (void) active;                                       \
-        if constexpr (!dr::is_cuda_v<Float>)                                                \
-            return ray_intersect_preliminary_impl<FloatP##N>(ray, prim_index, active);      \
-        else                                                                                \
-            Throw("ray_intersect_preliminary_packet() CUDA not supported");                 \
-    }                                                                                       \
-    MaskP##N ray_test_packet(const Ray3fP##N &ray, ScalarIndex prim_index, MaskP##N active) \
-        const override {                                                                    \
-        (void) ray; (void) prim_index; (void) active;                                       \
-        if constexpr (!dr::is_cuda_v<Float>)                                                \
-            return ray_test_impl<FloatP##N>(ray, prim_index, active);                       \
-        else                                                                                \
-            Throw("ray_intersect_preliminary_packet() CUDA not supported");                 \
+#define MI_IMPLEMENT_RAY_INTERSECT_PACKET(N)                                   \
+    using typename Base::FloatP##N;                                            \
+    using typename Base::UInt32P##N;                                           \
+    using typename Base::MaskP##N;                                             \
+    using typename Base::Point2fP##N;                                          \
+    using typename Base::Point3fP##N;                                          \
+    using typename Base::Ray3fP##N;                                            \
+    std::tuple<FloatP##N, Point2fP##N, UInt32P##N, UInt32P##N>                 \
+    ray_intersect_preliminary_packet(const Ray3fP##N &ray,                     \
+                                     ScalarIndex prim_index, MaskP##N active)  \
+        const override {                                                       \
+        (void) ray;                                                            \
+        (void) prim_index;                                                     \
+        (void) active;                                                         \
+        if constexpr (!dr::is_cuda_v<Float>)                                   \
+            return ray_intersect_preliminary_impl<FloatP##N>(ray, prim_index,  \
+                                                             active);          \
+        else                                                                   \
+            Throw("ray_intersect_preliminary_packet() CUDA not supported");    \
+    }                                                                          \
+    MaskP##N ray_test_packet(const Ray3fP##N &ray, ScalarIndex prim_index,     \
+                             MaskP##N active) const override {                 \
+        (void) ray;                                                            \
+        (void) prim_index;                                                     \
+        (void) active;                                                         \
+        if constexpr (!dr::is_cuda_v<Float>)                                   \
+            return ray_test_impl<FloatP##N>(ray, prim_index, active);          \
+        else                                                                   \
+            Throw("ray_intersect_preliminary_packet() CUDA not supported");    \
     }
 
-// Macro to define ray intersection methods given an *_impl() templated implementation
-#define MI_SHAPE_DEFINE_RAY_INTERSECT_METHODS()                                             \
-    PreliminaryIntersection3f ray_intersect_preliminary(                                    \
-        const Ray3f &ray, ScalarIndex prim_index, Mask active) const override {             \
-        MI_MASK_ARGUMENT(active);                                                           \
-        PreliminaryIntersection3f pi = dr::zeros<PreliminaryIntersection3f>();              \
-        std::tie(pi.t, pi.prim_uv, pi.shape_index, pi.prim_index) =                         \
-            ray_intersect_preliminary_impl<Float>(ray, prim_index, active);                 \
-        pi.shape = this;                                                                    \
-        return pi;                                                                          \
-    }                                                                                       \
-    Mask ray_test(const Ray3f &ray, ScalarIndex prim_index, Mask active) const override {   \
-        MI_MASK_ARGUMENT(active);                                                           \
-        return ray_test_impl<Float>(ray, prim_index, active);                               \
-    }                                                                                       \
-    using typename Base::ScalarRay3f;                                                       \
-    std::tuple<ScalarFloat, ScalarPoint2f, ScalarUInt32, ScalarUInt32>                      \
-    ray_intersect_preliminary_scalar(const ScalarRay3f &ray) const override {               \
-        return ray_intersect_preliminary_impl<ScalarFloat>(ray, 0, true);                   \
-    }                                                                                       \
-    ScalarMask ray_test_scalar(const ScalarRay3f &ray) const override {                     \
-        return ray_test_impl<ScalarFloat>(ray, 0, true);                                    \
-    }                                                                                       \
-    MI_IMPLEMENT_RAY_INTERSECT_PACKET(4)                                                    \
-    MI_IMPLEMENT_RAY_INTERSECT_PACKET(8)                                                    \
+// Macro to define ray intersection methods given an *_impl() templated
+// implementation
+#define MI_SHAPE_DEFINE_RAY_INTERSECT_METHODS()                                \
+    PreliminaryIntersection3f ray_intersect_preliminary(                       \
+        const Ray3f &ray, ScalarIndex prim_index, Mask active)                 \
+        const override {                                                       \
+        MI_MASK_ARGUMENT(active);                                              \
+        PreliminaryIntersection3f pi = dr::zeros<PreliminaryIntersection3f>(); \
+        std::tie(pi.t, pi.prim_uv, pi.shape_index, pi.prim_index) =            \
+            ray_intersect_preliminary_impl<Float>(ray, prim_index, active);    \
+        pi.shape = this;                                                       \
+        return pi;                                                             \
+    }                                                                          \
+    Mask ray_test(const Ray3f &ray, ScalarIndex prim_index, Mask active)       \
+        const override {                                                       \
+        MI_MASK_ARGUMENT(active);                                              \
+        return ray_test_impl<Float>(ray, prim_index, active);                  \
+    }                                                                          \
+    using typename Base::ScalarRay3f;                                          \
+    std::tuple<ScalarFloat, ScalarPoint2f, ScalarUInt32, ScalarUInt32>         \
+    ray_intersect_preliminary_scalar(const ScalarRay3f &ray) const override {  \
+        return ray_intersect_preliminary_impl<ScalarFloat>(ray, 0, true);      \
+    }                                                                          \
+    ScalarMask ray_test_scalar(const ScalarRay3f &ray) const override {        \
+        return ray_test_impl<ScalarFloat>(ray, 0, true);                       \
+    }                                                                          \
+    MI_IMPLEMENT_RAY_INTERSECT_PACKET(4)                                       \
+    MI_IMPLEMENT_RAY_INTERSECT_PACKET(8)                                       \
     MI_IMPLEMENT_RAY_INTERSECT_PACKET(16)
 
 // -----------------------------------------------------------------------
@@ -1080,37 +1144,38 @@ NAMESPACE_END(mitsuba)
 // -----------------------------------------------------------------------
 
 DRJIT_CALL_TEMPLATE_BEGIN(mitsuba::Shape)
-    DRJIT_CALL_METHOD(compute_surface_interaction)
-    DRJIT_CALL_METHOD(has_attribute)
-    DRJIT_CALL_METHOD(eval_attribute)
-    DRJIT_CALL_METHOD(eval_attribute_1)
-    DRJIT_CALL_METHOD(eval_attribute_3)
-    DRJIT_CALL_METHOD(eval_parameterization)
-    DRJIT_CALL_METHOD(ray_intersect_preliminary)
-    DRJIT_CALL_METHOD(ray_intersect)
-    DRJIT_CALL_METHOD(ray_test)
-    DRJIT_CALL_METHOD(sample_position)
-    DRJIT_CALL_METHOD(pdf_position)
-    DRJIT_CALL_METHOD(sample_direction)
-    DRJIT_CALL_METHOD(pdf_direction)
-    DRJIT_CALL_METHOD(sample_silhouette)
-    DRJIT_CALL_METHOD(invert_silhouette_sample)
-    DRJIT_CALL_METHOD(primitive_silhouette_projection)
-    DRJIT_CALL_METHOD(differential_motion)
-    DRJIT_CALL_METHOD(sample_precomputed_silhouette)
-    DRJIT_CALL_METHOD(surface_area)
-    DRJIT_CALL_GETTER(emitter)
-    DRJIT_CALL_GETTER(sensor)
-    DRJIT_CALL_GETTER(bsdf)
-    DRJIT_CALL_GETTER(interior_medium)
-    DRJIT_CALL_GETTER(exterior_medium)
-    DRJIT_CALL_GETTER(silhouette_discontinuity_types)
-    DRJIT_CALL_GETTER(silhouette_sampling_weight)
-    DRJIT_CALL_GETTER(shape_type)
-    auto is_emitter() const { return emitter() != nullptr; }
-    auto is_sensor() const { return sensor() != nullptr; }
-    auto is_medium_transition() const { return interior_medium() != nullptr ||
-                                               exterior_medium() != nullptr; }
+DRJIT_CALL_METHOD(compute_surface_interaction)
+DRJIT_CALL_METHOD(has_attribute)
+DRJIT_CALL_METHOD(eval_attribute)
+DRJIT_CALL_METHOD(eval_attribute_1)
+DRJIT_CALL_METHOD(eval_attribute_3)
+DRJIT_CALL_METHOD(eval_parameterization)
+DRJIT_CALL_METHOD(ray_intersect_preliminary)
+DRJIT_CALL_METHOD(ray_intersect)
+DRJIT_CALL_METHOD(ray_test)
+DRJIT_CALL_METHOD(sample_position)
+DRJIT_CALL_METHOD(pdf_position)
+DRJIT_CALL_METHOD(sample_direction)
+DRJIT_CALL_METHOD(pdf_direction)
+DRJIT_CALL_METHOD(sample_silhouette)
+DRJIT_CALL_METHOD(invert_silhouette_sample)
+DRJIT_CALL_METHOD(primitive_silhouette_projection)
+DRJIT_CALL_METHOD(differential_motion)
+DRJIT_CALL_METHOD(sample_precomputed_silhouette)
+DRJIT_CALL_METHOD(surface_area)
+DRJIT_CALL_GETTER(emitter)
+DRJIT_CALL_GETTER(sensor)
+DRJIT_CALL_GETTER(bsdf)
+DRJIT_CALL_GETTER(interior_medium)
+DRJIT_CALL_GETTER(exterior_medium)
+DRJIT_CALL_GETTER(silhouette_discontinuity_types)
+DRJIT_CALL_GETTER(silhouette_sampling_weight)
+DRJIT_CALL_GETTER(shape_type)
+auto is_emitter() const { return emitter() != nullptr; }
+auto is_sensor() const { return sensor() != nullptr; }
+auto is_medium_transition() const {
+    return interior_medium() != nullptr || exterior_medium() != nullptr;
+}
 DRJIT_CALL_END(mitsuba::Shape)
 
 //! @}

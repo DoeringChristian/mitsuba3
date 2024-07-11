@@ -5,6 +5,7 @@
 #include <mitsuba/render/medium.h>
 #include <mitsuba/render/shape.h>
 #include <mitsuba/render/texture.h>
+#include "drjit/traversable_base.h"
 
 NAMESPACE_BEGIN(mitsuba)
 
@@ -58,6 +59,21 @@ emitter shape and specify an :monosp:`area` instance as its child:
 template <typename Float, typename Spectrum>
 class AreaLight final : public Emitter<Float, Spectrum> {
 public:
+    // DR_TRAVERSE_CB(m_radiance);
+    void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t)) const override {
+        // std::cout << "traversing arealight" << std::endl;
+        Emitter<Float, Spectrum>::traverse_1_cb_ro(payload, fn);
+        const Texture *tmp = m_radiance.get();
+        traverse_1_fn_ro(tmp, payload, fn);
+    }
+
+    void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t)) override {
+        // std::cout << "rwtraversing arealight" << std::endl;
+        Emitter<Float, Spectrum>::traverse_1_cb_rw(payload, fn);
+        // Texture &tmp = *m_radiance;
+        Texture *tmp = m_radiance.get();
+        traverse_1_fn_rw(tmp, payload, fn);
+    }
     MI_IMPORT_BASE(Emitter, m_flags, m_shape, m_medium)
     MI_IMPORT_TYPES(Scene, Shape, Texture)
 

@@ -135,6 +135,17 @@ class BitmapTextureImpl;
 template <typename Float, typename Spectrum>
 class BitmapTexture final : public Texture<Float, Spectrum> {
 public:
+    void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t)) const override {
+        // std::cout << "traversing Texture" << std::endl;
+        traverse_1_fn_ro(m_tensor, payload, fn);
+        traverse_1_fn_ro(m_bitmap, payload, fn);
+    }
+
+    void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t)) override {
+        // std::cout << "rwtraversing Texture" << std::endl;
+        traverse_1_fn_rw(m_tensor, payload, fn);
+        traverse_1_fn_rw(m_bitmap, payload, fn);
+    }
     MI_IMPORT_TYPES(Texture)
 
     BitmapTexture(const Properties &props) : Texture(props) {
@@ -360,6 +371,15 @@ private:
 template <typename Float, typename Spectrum, typename StoredType>
 class BitmapTextureImpl : public Texture<Float, Spectrum> {
 public:
+    void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t)) const override {
+        // std::cout << "traversing BitmapTextureImpl" << std::endl;
+        traverse_1_fn_ro(m_texture.tensor(), payload, fn);
+    }
+
+    void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t)) override {
+        // std::cout << "rwtraversing BitmapTextureImpl" << std::endl;
+        traverse_1_fn_rw(m_texture.tensor(), payload, fn);
+    }
     MI_IMPORT_TYPES(Texture)
 
     using StoredScalar           = dr::scalar_t<StoredType>;

@@ -91,6 +91,8 @@ public:
                     initialize)
     MI_IMPORT_TYPES()
 
+    DR_TRAVERSE_CB_BASE(Base);
+
     using typename Base::FloatStorage;
     using typename Base::InputFloat;
     using typename Base::InputNormal3f;

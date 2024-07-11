@@ -3,9 +3,9 @@
 #include <mitsuba/core/distr_1d.h>
 #include <mitsuba/core/spectrum.h>
 #include <mitsuba/render/emitter.h>
-#include <mitsuba/render/shapegroup.h>
 #include <mitsuba/render/fwd.h>
 #include <mitsuba/render/sensor.h>
+#include <mitsuba/render/shapegroup.h>
 
 NAMESPACE_BEGIN(mitsuba)
 
@@ -40,6 +40,137 @@ public:
                     ShapePtr, ShapeGroup, Sensor, Integrator, Medium, MediumPtr,
                     Mesh)
 
+    // DR_TRAVERSE_CB(m_accel_handle, m_emitters, m_emitters_dr, m_shapes,
+    //                m_shapes_dr, m_shapegroups, m_sensors, m_sensors_dr,
+    //                m_children, m_integrator, m_environment, m_emitter_pmf,
+    //                m_emitter_distr, m_silhouette_shapes);
+    
+void traverse_1_cb_ro(void *payload,
+                      void (*fn)(void *, uint64_t)) const override {
+        // std::cout << "traversing Scene" << std::endl;
+    drjit ::traverse_1_fn_ro(m_accel_handle, payload, fn);
+    drjit ::traverse_1_fn_ro(m_emitters, payload, fn);
+    drjit ::traverse_1_fn_ro(m_emitters_dr, payload, fn);
+    drjit ::traverse_1_fn_ro(m_shapes, payload, fn);
+    drjit ::traverse_1_fn_ro(m_shapes_dr, payload, fn);
+    drjit ::traverse_1_fn_ro(m_shapegroups, payload, fn);
+    drjit ::traverse_1_fn_ro(m_sensors, payload, fn);
+    drjit ::traverse_1_fn_ro(m_sensors_dr, payload, fn);
+    drjit ::traverse_1_fn_ro(m_children, payload, fn);
+    drjit ::traverse_1_fn_ro(m_integrator, payload, fn);
+    drjit ::traverse_1_fn_ro(m_environment, payload, fn);
+    drjit ::traverse_1_fn_ro(m_emitter_pmf, payload, fn);
+    drjit ::traverse_1_fn_ro(m_emitter_distr, payload, fn);
+    drjit ::traverse_1_fn_ro(m_silhouette_shapes, payload, fn);
+}
+void traverse_1_cb_rw(void *payload,
+                      uint64_t (*fn)(void *, uint64_t)) override {
+        // std::cout << "rwtraversing Scene" << std::endl;
+        // std::cout << "m_accel_handle" << std::endl;
+    drjit ::traverse_1_fn_rw(m_accel_handle, payload, fn);
+        // std::cout << "m_emitters" << std::endl;
+    drjit ::traverse_1_fn_rw(m_emitters, payload, fn);
+        // std::cout << "m_emitters_dr" << std::endl;
+    drjit ::traverse_1_fn_rw(m_emitters_dr, payload, fn);
+        // std::cout << "m_shapes" << std::endl;
+    drjit ::traverse_1_fn_rw(m_shapes, payload, fn);
+        // std::cout << "m_shapes_dr" << std::endl;
+    drjit ::traverse_1_fn_rw(m_shapes_dr, payload, fn);
+        // std::cout << "m_shapegroups" << std::endl;
+    drjit ::traverse_1_fn_rw(m_shapegroups, payload, fn);
+        // std::cout << "m_sensors" << std::endl;
+    drjit ::traverse_1_fn_rw(m_sensors, payload, fn);
+        // std::cout << "m_sensors_dr" << std::endl;
+    drjit ::traverse_1_fn_rw(m_sensors_dr, payload, fn);
+        // std::cout << "m_children" << std::endl;
+    drjit ::traverse_1_fn_rw(m_children, payload, fn);
+        // std::cout << "m_integrator" << std::endl;
+    drjit ::traverse_1_fn_rw(m_integrator, payload, fn);
+        // std::cout << "m_environment" << std::endl;
+    drjit ::traverse_1_fn_rw(m_environment, payload, fn);
+        // std::cout << "m_environment_pmf" << std::endl;
+    drjit ::traverse_1_fn_rw(m_emitter_pmf, payload, fn);
+        // std::cout << "m_emitter_distr" << std::endl;
+    drjit ::traverse_1_fn_rw(m_emitter_distr, payload, fn);
+        // std::cout << "m_silhouette_shapes" << std::endl;
+    drjit ::traverse_1_fn_rw(m_silhouette_shapes, payload, fn);
+}
+
+
+    // void traverse_1_cb_ro(void *payload,
+    //                       void (*fn)(void *, uint64_t)) const override {
+    //     std::cout << "Traversing Scene" << std::endl;
+    //     drjit::traverse_1_fn_ro(m_accel_handle, payload, fn);
+    //     for (const ref<Emitter> &emitter: m_emitters){
+    //         drjit::traverse_1_fn_ro(emitter.get(), payload, fn);
+    //     }
+    //     drjit::traverse_1_fn_ro(m_emitters_dr, payload, fn);
+    //     for (const ref<Shape> &shape: m_shapes){
+    //         drjit::traverse_1_fn_ro(shape.get(), payload, fn);
+    //     }
+    //     drjit::traverse_1_fn_ro(m_shapes_dr, payload, fn);
+    //     drjit::traverse_1_fn_ro(m_shapegroups, payload, fn);
+    //     for (const ref<Sensor> &sensor: m_sensors){
+    //         drjit::traverse_1_fn_ro(sensor.get(), payload, fn);
+    //     }
+    //     drjit::traverse_1_fn_ro(m_sensors_dr, payload, fn);
+    //     for(const ref<Object> &child: m_children){
+    //         drjit::traverse_1_fn_ro(child.get(), payload, fn);
+    //     }
+    //     {
+    //         const Integrator *integrator = this->m_integrator.get();
+    //         drjit::traverse_1_fn_ro(integrator, payload, fn);
+    //     }
+    //     {
+    //         const Emitter *env = this->m_environment.get();
+    //         drjit::traverse_1_fn_ro(env, payload, fn);
+    //     }
+    //     drjit::traverse_1_fn_ro(m_emitter_pmf, payload, fn);
+    //     drjit::traverse_1_fn_ro(m_emitter_distr, payload, fn);
+    //     drjit::traverse_1_fn_ro(m_silhouette_shapes, payload, fn);
+    // }
+    //
+    // void traverse_1_cb_rw(void *payload,
+    //                       uint64_t (*fn)(void *, uint64_t)) override {
+    //     std::cout << "rwTraversing Scene" << std::endl;
+    //     drjit::traverse_1_fn_rw(m_accel_handle, payload, fn);
+    //     std::cout << "emitters" << std::endl;
+    //     drjit::traverse_1_fn_rw(m_emitters, payload, fn);
+    //     // for (ref<Emitter> &ref: m_emitters){
+    //     //     Emitter *emitter = ref.get();
+    //     //     drjit::traverse_1_fn_rw(emitter, payload, fn);
+    //     // }
+    //     drjit::traverse_1_fn_rw(m_emitters_dr, payload, fn);
+    //     for (ref<Shape> &ref: m_shapes){
+    //         Shape *shape = ref.get();
+    //         std::cout << "shape" << std::endl;
+    //         drjit::traverse_1_fn_rw(shape, payload, fn);
+    //     }
+    //     std::cout << "m_shapes_dr" << std::endl;
+    //     drjit::traverse_1_fn_rw(m_shapes_dr, payload, fn);
+    //     drjit::traverse_1_fn_rw(m_shapegroups, payload, fn);
+    //     for (ref<Sensor> &ref: m_sensors){
+    //         Sensor *sensor = ref.get();
+    //         drjit::traverse_1_fn_rw(sensor, payload, fn);
+    //     }
+    //     drjit::traverse_1_fn_rw(m_sensors_dr, payload, fn);
+    //     for(ref<Object> &ref: m_children){
+    //         Object *child = ref.get();
+    //         drjit::traverse_1_fn_rw(child, payload, fn);
+    //     }
+    //     {
+    //         Integrator *integrator = this->m_integrator.get();
+    //         drjit::traverse_1_fn_rw(integrator, payload, fn);
+    //     }
+    //     {
+    //         Emitter *env = this->m_environment.get();
+    //         drjit::traverse_1_fn_rw(env, payload, fn);
+    //     }
+    //     drjit::traverse_1_fn_rw(m_emitter_pmf, payload, fn);
+    //     drjit::traverse_1_fn_rw(m_emitter_distr, payload, fn);
+    //     drjit::traverse_1_fn_rw(m_silhouette_shapes, payload, fn);
+    // }
+
     /// Instantiate a scene from a \ref Properties object
     Scene(const Properties &props);
 
@@ -59,11 +190,11 @@ public:
      * interactions following the usual conventions.
      *
      * This method is a convenience wrapper of the generalized version of
-     * \c ray_intersect() below. It assumes that incoherent rays are being traced,
-     * and that the user desires access to all fields of the
-     * \ref SurfaceInteraction. In other words, it simply invokes the general
-     * \c ray_intersect() overload with <tt>coherent=false</tt> and
-     * \c ray_flags equal to \ref RayFlags::All.
+     * \c ray_intersect() below. It assumes that incoherent rays are being
+     * traced, and that the user desires access to all fields of the \ref
+     * SurfaceInteraction. In other words, it simply invokes the general \c
+     * ray_intersect() overload with <tt>coherent=false</tt> and \c ray_flags
+     * equal to \ref RayFlags::All.
      *
      * \param ray
      *    A 3D ray including maximum extent (\ref Ray::maxt) and time (\ref
@@ -143,10 +274,8 @@ public:
      *    A detailed surface interaction record. Its <tt>is_valid()</tt> method
      *    should be queried to check if an intersection was actually found.
      */
-    SurfaceInteraction3f ray_intersect(const Ray3f &ray,
-                                       uint32_t ray_flags,
-                                       Mask coherent,
-                                       Mask active = true) const;
+    SurfaceInteraction3f ray_intersect(const Ray3f &ray, uint32_t ray_flags,
+                                       Mask coherent, Mask active = true) const;
 
     /**
      * \brief Intersect a ray with the shapes comprising the scene and return a
@@ -221,8 +350,8 @@ public:
      * <ul>
      *    <li>the ray distance up to the intersection (if one is found).</li>
      *    <li>the intersected shape and primitive index.</li>
-     *    <li>local UV coordinates of the intersection within the primitive.</li>
-     *    <li>A pointer to the intersected shape or instance.</li>
+     *    <li>local UV coordinates of the intersection within the
+     * primitive.</li> <li>A pointer to the intersected shape or instance.</li>
      * </ul>
      *
      * The information is only preliminary at this point, because it lacks
@@ -256,12 +385,12 @@ public:
      *    Embree. It has no effect in scalar or CUDA/OptiX variants.
      *
      * \return
-     *    A preliminary surface interaction record. Its <tt>is_valid()</tt> method
-     *    should be queried to check if an intersection was actually found.
+     *    A preliminary surface interaction record. Its <tt>is_valid()</tt>
+     * method should be queried to check if an intersection was actually found.
      */
-    PreliminaryIntersection3f ray_intersect_preliminary(const Ray3f &ray,
-                                                        Mask coherent = false,
-                                                        Mask active = true) const;
+    PreliminaryIntersection3f
+    ray_intersect_preliminary(const Ray3f &ray, Mask coherent = false,
+                              Mask active = true) const;
 
     /**
      * \brief Ray intersection using a brute force search. Used in
@@ -293,8 +422,8 @@ public:
      *    The index of the chosen emitter along with the sampling weight (equal
      *    to the inverse PDF), and the transformed random sample for reuse.
      */
-    std::tuple<UInt32, Float, Float>
-    sample_emitter(Float index_sample, Mask active = true) const;
+    std::tuple<UInt32, Float, Float> sample_emitter(Float index_sample,
+                                                    Mask active = true) const;
 
     /**
      * \brief Evaluate the discrete probability of the \ref
@@ -380,10 +509,9 @@ public:
      *    </ul>
      */
     std::pair<DirectionSample3f, Spectrum>
-    sample_emitter_direction(const Interaction3f &ref,
-                             const Point2f &sample,
+    sample_emitter_direction(const Interaction3f &ref, const Point2f &sample,
                              bool test_visibility = true,
-                             Mask active = true) const;
+                             Mask active          = true) const;
 
     /**
      * \brief Evaluate the PDF of direct illumination sampling
@@ -461,7 +589,7 @@ public:
      *      The boundary space sample (a point in the unit cube).
      *
      * \param flags
-     *      Flags to select the type of silhouettes to sample from (see 
+     *      Flags to select the type of silhouettes to sample from (see
      *      \ref DiscontinuityFlags). Multiple types of discontinuities can be
      *      sampled in a single call.
      *      If a single type of silhouette is specified, shapes that do not have
@@ -472,8 +600,7 @@ public:
      * \return
      *     Silhouette sample record.
      */
-    SilhouetteSample3f sample_silhouette(const Point3f &sample,
-                                         uint32_t flags,
+    SilhouetteSample3f sample_silhouette(const Point3f &sample, uint32_t flags,
                                          Mask active = true) const;
 
     /**
@@ -520,15 +647,19 @@ public:
     const std::vector<ref<Shape>> &shapes() const { return m_shapes; }
 
     /// Return the list of shapes that can have their silhouette sampled
-    const std::vector<ref<Shape>> &silhouette_shapes() const { return m_silhouette_shapes; }
+    const std::vector<ref<Shape>> &silhouette_shapes() const {
+        return m_silhouette_shapes;
+    }
 
     /// Return the scene's integrator
-    Integrator* integrator() { return m_integrator; }
+    Integrator *integrator() { return m_integrator; }
     /// Return the scene's integrator
-    const Integrator* integrator() const { return m_integrator; }
+    const Integrator *integrator() const { return m_integrator; }
 
     /// Return the list of emitters as a Dr.Jit array
-    const DynamicBuffer<EmitterPtr> &emitters_dr() const { return m_emitters_dr; }
+    const DynamicBuffer<EmitterPtr> &emitters_dr() const {
+        return m_emitters_dr;
+    }
 
     /// Return the list of shapes as a Dr.Jit array
     const DynamicBuffer<ShapePtr> &shapes_dr() const { return m_shapes_dr; }
@@ -543,7 +674,8 @@ public:
     void traverse(TraversalCallback *callback) override;
 
     /// Update internal state following a parameter update
-    void parameters_changed(const std::vector<std::string> &/*keys*/ = {}) override;
+    void
+    parameters_changed(const std::vector<std::string> & /*keys*/ = {}) override;
 
     /**
      * \brief Specifies whether any of the scene's shape parameters have
@@ -586,16 +718,23 @@ protected:
     /// Trace a ray and only return a preliminary intersection data structure
     MI_INLINE PreliminaryIntersection3f ray_intersect_preliminary_cpu(
         const Ray3f &ray, Mask coherent, Mask active) const;
-    MI_INLINE PreliminaryIntersection3f ray_intersect_preliminary_gpu(
-        const Ray3f &ray, Mask active) const;
+    MI_INLINE PreliminaryIntersection3f
+    ray_intersect_preliminary_gpu(const Ray3f &ray, Mask active) const;
 
     /// Trace a ray
-    MI_INLINE SurfaceInteraction3f ray_intersect_cpu(const Ray3f &ray, uint32_t ray_flags, Mask coherent, Mask active) const;
-    MI_INLINE SurfaceInteraction3f ray_intersect_gpu(const Ray3f &ray, uint32_t ray_flags, Mask active) const;
-    MI_INLINE SurfaceInteraction3f ray_intersect_naive_cpu(const Ray3f &ray, Mask active) const;
+    MI_INLINE SurfaceInteraction3f ray_intersect_cpu(const Ray3f &ray,
+                                                     uint32_t ray_flags,
+                                                     Mask coherent,
+                                                     Mask active) const;
+    MI_INLINE SurfaceInteraction3f ray_intersect_gpu(const Ray3f &ray,
+                                                     uint32_t ray_flags,
+                                                     Mask active) const;
+    MI_INLINE SurfaceInteraction3f ray_intersect_naive_cpu(const Ray3f &ray,
+                                                           Mask active) const;
 
     /// Trace a shadow ray
-    MI_INLINE Mask ray_test_cpu(const Ray3f &ray, Mask coherent, Mask active) const;
+    MI_INLINE Mask ray_test_cpu(const Ray3f &ray, Mask coherent,
+                                Mask active) const;
     MI_INLINE Mask ray_test_gpu(const Ray3f &ray, Mask active) const;
 
     using ShapeKDTree = mitsuba::ShapeKDTree<Float, Spectrum>;
@@ -638,20 +777,23 @@ protected:
     bool m_shapes_grad_enabled;
 };
 
-/// Dummy function which can be called to ensure that the librender shared library is loaded
+/// Dummy function which can be called to ensure that the librender shared
+/// library is loaded
 extern MI_EXPORT_LIB void librender_nop();
 
 // See interaction.h
 template <typename Float, typename Spectrum>
 typename SurfaceInteraction<Float, Spectrum>::EmitterPtr
-SurfaceInteraction<Float, Spectrum>::emitter(const Scene *scene, Mask active) const {
+SurfaceInteraction<Float, Spectrum>::emitter(const Scene *scene,
+                                             Mask active) const {
     if constexpr (!dr::is_jit_v<Float>) {
         DRJIT_MARK_USED(active);
         return is_valid() ? shape->emitter() : scene->environment();
     } else {
         EmitterPtr emitter = shape->emitter(active);
         if (scene && scene->environment())
-            emitter = dr::select(is_valid(), emitter, scene->environment() & active);
+            emitter =
+                dr::select(is_valid(), emitter, scene->environment() & active);
         return emitter;
     }
 }

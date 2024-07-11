@@ -16,6 +16,31 @@ NAMESPACE_BEGIN(mitsuba)
 template <typename Float, typename Spectrum>
 class MI_EXPORT_LIB Mesh : public Shape<Float, Spectrum> {
 public:
+    void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t)) const override {
+        Shape<Float, Spectrum>::traverse_1_cb_ro(payload, fn);
+        // std::cout << "traversing mesh" << std::endl;
+        drjit::traverse_1_fn_ro(m_bbox, payload, fn);
+        drjit::traverse_1_fn_ro(m_vertex_positions, payload, fn);
+        drjit::traverse_1_fn_ro(m_vertex_texcoords, payload, fn);
+        drjit::traverse_1_fn_ro(m_faces, payload, fn);
+        // drjit::traverse_1_fn_ro(m_E2E, payload, fn);
+        // drjit::traverse_1_fn_ro(m_invalid_dedge, payload, fn);
+        // drjit::traverse_1_fn_ro(m_sil_dedge_pmf, payload, fn);
+        // drjit::traverse_1_fn_ro(m_area_pmf, payload, fn);
+    }
+
+    void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t)) override {
+        Shape<Float, Spectrum>::traverse_1_cb_rw(payload, fn);
+        // std::cout << "rwtraversing mesh" << std::endl;
+        drjit::traverse_1_fn_rw(m_bbox, payload, fn);
+        drjit::traverse_1_fn_rw(m_vertex_positions, payload, fn);
+        drjit::traverse_1_fn_rw(m_vertex_texcoords, payload, fn);
+        drjit::traverse_1_fn_rw(m_faces, payload, fn);
+        // drjit::traverse_1_fn_rw(m_E2E, payload, fn);
+        // drjit::traverse_1_fn_rw(m_invalid_dedge, payload, fn);
+        // drjit::traverse_1_fn_rw(m_sil_dedge_pmf, payload, fn);
+        // drjit::traverse_1_fn_rw(m_area_pmf, payload, fn);
+    }
     MI_IMPORT_TYPES()
     MI_IMPORT_BASE(Shape, m_to_world, mark_dirty, m_emitter, m_sensor, m_bsdf,
                    m_interior_medium, m_exterior_medium, m_is_instance,

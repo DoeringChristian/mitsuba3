@@ -48,6 +48,8 @@ class IrregularSpectrum final : public Texture<Float, Spectrum> {
 public:
     MI_IMPORT_TYPES(Texture)
 
+    DR_TRAVERSE_CB(m_distr);
+
 public:
     IrregularSpectrum(const Properties &props) : Texture(props) {
         if (props.type("values") == Properties::Type::String) {
