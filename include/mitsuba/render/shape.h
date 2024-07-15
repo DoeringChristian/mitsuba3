@@ -223,30 +223,6 @@ template <typename Float, typename Spectrum>
 class MI_EXPORT_LIB Shape : public Object {
 public:
 
-    void traverse_1_cb_ro(void *payload,
-                          void (*fn)(void *, uint64_t)) const override {
-        // std::cout << "traversing Shape" << std::endl;
-        drjit::traverse_1_fn_ro(m_bsdf, payload, fn);
-        drjit::traverse_1_fn_ro(m_emitter, payload, fn);
-        drjit::traverse_1_fn_ro(m_sensor, payload, fn);
-        drjit::traverse_1_fn_ro(m_interior_medium, payload, fn);
-        drjit::traverse_1_fn_ro(m_exterior_medium, payload, fn);
-        drjit::traverse_1_fn_ro(m_to_world, payload, fn);
-        drjit::traverse_1_fn_ro(m_to_object, payload, fn);
-    }
-
-    void traverse_1_cb_rw(void *payload,
-                          uint64_t (*fn)(void *, uint64_t)) override {
-        // std::cout << "rwtraversing Shape" << std::endl;
-        drjit::traverse_1_fn_rw(m_bsdf, payload, fn);
-        drjit::traverse_1_fn_rw(m_emitter, payload, fn);
-        drjit::traverse_1_fn_rw(m_sensor, payload, fn);
-        drjit::traverse_1_fn_rw(m_interior_medium, payload, fn);
-        drjit::traverse_1_fn_rw(m_exterior_medium, payload, fn);
-        drjit::traverse_1_fn_rw(m_to_world, payload, fn);
-        drjit::traverse_1_fn_rw(m_to_object, payload, fn);
-    }
-
     MI_IMPORT_TYPES(BSDF, Medium, Emitter, Sensor, MeshAttribute, Texture)
 
     // Use 32 bit indices to keep track of indices to conserve memory
@@ -1042,6 +1018,9 @@ protected:
 
     /// True if the shape has called iniatlize() at least once
     bool m_initialized = false;
+
+    DR_TRAVERSE_CB(Object, m_bsdf, m_emitter, m_sensor, m_interior_medium,
+                   m_exterior_medium, m_to_world, m_to_object);
 };
 
 // -----------------------------------------------------------------------

@@ -48,8 +48,6 @@ class UniformSpectrum final : public Texture<Float, Spectrum> {
 public:
     MI_IMPORT_TYPES(Texture)
 
-    DR_TRAVERSE_CB(Texture, m_value);
-
     UniformSpectrum(const Properties &props) : Texture(props) {
         m_value = dr::opaque<Float>(props.get<ScalarFloat>("value"));
         m_range = ScalarVector2f(props.get<ScalarFloat>("wavelength_min", MI_CIE_MIN),
@@ -123,6 +121,8 @@ public:
 private:
     Float m_value;
     ScalarVector2f m_range;
+    
+    DR_TRAVERSE_CB(Texture, m_value);
 };
 
 MI_IMPLEMENT_CLASS_VARIANT(UniformSpectrum, Texture)

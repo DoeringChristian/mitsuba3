@@ -65,6 +65,4 @@ MI_PY_EXPORT(Object) {
         .def_prop_ro("ptr", [](Object *self) { return (uintptr_t) self; })
         .def("class_", &Object::class_, nb::rv_policy::copy, D(Object, class))
         .def("__repr__", &Object::to_string, D(Object, to_string));
-    
-    dr::bind_traverse(obj);
 }

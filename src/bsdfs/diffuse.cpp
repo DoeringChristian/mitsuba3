@@ -84,18 +84,6 @@ Alternatively, the reflectance can be textured:
 template <typename Float, typename Spectrum>
 class SmoothDiffuse final : public BSDF<Float, Spectrum> {
 public:
-    
-    void traverse_1_cb_ro(void *payload,
-                          void (*fn)(void *, uint64_t)) const override {
-        // std::cout << "traversing SmoothDiffuse" << std::endl;
-        traverse_1_fn_ro(m_reflectance.get(), payload, fn);
-    }
-
-    void traverse_1_cb_rw(void *payload,
-                          uint64_t (*fn)(void *, uint64_t)) override {
-        Texture *tmp = m_reflectance.get();
-        traverse_1_fn_rw(tmp, payload, fn);
-    }
     MI_IMPORT_BASE(BSDF, m_flags, m_components)
     MI_IMPORT_TYPES(Texture)
 
@@ -206,6 +194,8 @@ public:
     MI_DECLARE_CLASS()
 private:
     ref<Texture> m_reflectance;
+
+    DR_TRAVERSE_CB(Base, m_reflectance);
 };
 
 MI_IMPLEMENT_CLASS_VARIANT(SmoothDiffuse, BSDF)

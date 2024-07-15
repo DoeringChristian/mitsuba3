@@ -19,61 +19,6 @@
 
 NAMESPACE_BEGIN(mitsuba)
 
-
-MI_VARIANT void Scene<Float, Spectrum>::traverse_1_cb_ro(void *payload,
-                      void (*fn)(void *, uint64_t)) const {
-    if constexpr(dr::is_jit_v<Float>){
-
-        drjit ::traverse_1_fn_ro(m_accel_handle, payload, fn);
-        drjit ::traverse_1_fn_ro(m_emitters, payload, fn);
-        drjit ::traverse_1_fn_ro(m_emitters_dr, payload, fn);
-        drjit ::traverse_1_fn_ro(m_shapes, payload, fn);
-        drjit ::traverse_1_fn_ro(m_shapes_dr, payload, fn);
-        drjit ::traverse_1_fn_ro(m_shapegroups, payload, fn);
-        drjit ::traverse_1_fn_ro(m_sensors, payload, fn);
-        drjit ::traverse_1_fn_ro(m_sensors_dr, payload, fn);
-        drjit ::traverse_1_fn_ro(m_children, payload, fn);
-        drjit ::traverse_1_fn_ro(m_integrator, payload, fn);
-        drjit ::traverse_1_fn_ro(m_environment, payload, fn);
-        drjit ::traverse_1_fn_ro(m_emitter_pmf, payload, fn);
-        drjit ::traverse_1_fn_ro(m_emitter_distr, payload, fn);
-        drjit ::traverse_1_fn_ro(m_silhouette_shapes, payload, fn);
-    }
-}
-
-MI_VARIANT void Scene<Float, Spectrum>::traverse_1_cb_rw(void *payload,
-                      uint64_t (*fn)(void *, uint64_t)) {
-    if constexpr(dr::is_jit_v<Float>){
-        drjit ::traverse_1_fn_rw(m_accel_handle, payload, fn);
-        // std::cout << "m_emitters" << std::endl;
-        drjit ::traverse_1_fn_rw(m_emitters, payload, fn);
-        // std::cout << "m_emitters_dr" << std::endl;
-        drjit ::traverse_1_fn_rw(m_emitters_dr, payload, fn);
-        // std::cout << "m_shapes" << std::endl;
-        drjit ::traverse_1_fn_rw(m_shapes, payload, fn);
-        // std::cout << "m_shapes_dr" << std::endl;
-        drjit ::traverse_1_fn_rw(m_shapes_dr, payload, fn);
-        // std::cout << "m_shapegroups" << std::endl;
-        drjit ::traverse_1_fn_rw(m_shapegroups, payload, fn);
-        // std::cout << "m_sensors" << std::endl;
-        drjit ::traverse_1_fn_rw(m_sensors, payload, fn);
-        // std::cout << "m_sensors_dr" << std::endl;
-        drjit ::traverse_1_fn_rw(m_sensors_dr, payload, fn);
-        // std::cout << "m_children" << std::endl;
-        drjit ::traverse_1_fn_rw(m_children, payload, fn);
-        // std::cout << "m_integrator" << std::endl;
-        drjit ::traverse_1_fn_rw(m_integrator, payload, fn);
-        // std::cout << "m_environment" << std::endl;
-        drjit ::traverse_1_fn_rw(m_environment, payload, fn);
-        // std::cout << "m_environment_pmf" << std::endl;
-        drjit ::traverse_1_fn_rw(m_emitter_pmf, payload, fn);
-        // std::cout << "m_emitter_distr" << std::endl;
-        drjit ::traverse_1_fn_rw(m_emitter_distr, payload, fn);
-        // std::cout << "m_silhouette_shapes" << std::endl;
-        drjit ::traverse_1_fn_rw(m_silhouette_shapes, payload, fn);
-    }
-}
-
 MI_VARIANT Scene<Float, Spectrum>::Scene(const Properties &props) {
     for (auto &[k, v] : props.objects()) {
         Scene *scene           = dynamic_cast<Scene *>(v.get());

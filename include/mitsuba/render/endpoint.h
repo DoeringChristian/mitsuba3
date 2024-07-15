@@ -54,14 +54,6 @@ NAMESPACE_BEGIN(mitsuba)
 template <typename Float, typename Spectrum>
 class MI_EXPORT_LIB Endpoint : public Object {
 public:
-    void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t)) const override {
-        // std::cout << "traversing endpoint" << std::endl;
-        drjit::traverse_1_fn_ro(m_to_world, payload, fn);
-    }
-
-    void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t)) override {
-        drjit::traverse_1_fn_rw(m_to_world, payload, fn);
-    }
     MI_IMPORT_TYPES(Medium, Scene, Shape)
 
     // =============================================================
@@ -405,6 +397,8 @@ protected:
     bool m_needs_sample_2 = true;
     bool m_needs_sample_3 = true;
     std::string m_id;
+
+    DR_TRAVERSE_CB(Object, m_to_world, m_medium);
 };
 
 MI_EXTERN_CLASS(Endpoint)

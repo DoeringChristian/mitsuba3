@@ -137,36 +137,6 @@ public:
                    sample_wavelengths)
     MI_IMPORT_TYPES()
 
-    void traverse_1_cb_ro(void *payload,
-                          void (*fn)(void *, uint64_t)) const override {
-        Base::traverse_1_cb_ro(payload, fn);
-        // std::cout << "traversing PerspectiveCamera" << std::endl;
-        drjit::traverse_1_fn_ro(m_camera_to_sample, payload, fn);
-        drjit::traverse_1_fn_ro(m_sample_to_camera, payload, fn);
-        drjit::traverse_1_fn_ro(m_x_fov, payload, fn);
-        drjit::traverse_1_fn_ro(m_dx, payload, fn);
-        drjit::traverse_1_fn_ro(m_dy, payload, fn);
-        drjit::traverse_1_fn_ro(m_image_rect, payload, fn);
-        drjit::traverse_1_fn_ro(m_normalization, payload, fn);
-        drjit::traverse_1_fn_ro(m_x_fov, payload, fn);
-        drjit::traverse_1_fn_ro(m_principal_point_offset, payload, fn);
-    }
-
-    void traverse_1_cb_rw(void *payload,
-                          uint64_t (*fn)(void *, uint64_t)) override {
-        Base::traverse_1_cb_rw(payload, fn);
-        // std::cout << "rwtraversing PerspectiveCamera" << std::endl;
-        drjit::traverse_1_fn_rw(m_camera_to_sample, payload, fn);
-        drjit::traverse_1_fn_rw(m_sample_to_camera, payload, fn);
-        drjit::traverse_1_fn_rw(m_x_fov, payload, fn);
-        drjit::traverse_1_fn_rw(m_dx, payload, fn);
-        drjit::traverse_1_fn_rw(m_dy, payload, fn);
-        drjit::traverse_1_fn_rw(m_image_rect, payload, fn);
-        drjit::traverse_1_fn_rw(m_normalization, payload, fn);
-        drjit::traverse_1_fn_rw(m_x_fov, payload, fn);
-        drjit::traverse_1_fn_rw(m_principal_point_offset, payload, fn);
-    }
-
     PerspectiveCamera(const Properties &props) : Base(props) {
         ScalarVector2i size = m_film->size();
         m_x_fov = (ScalarFloat) parse_fov(props, size.x() / (double) size.y());
@@ -442,6 +412,10 @@ private:
     Float m_x_fov;
     Vector3f m_dx, m_dy;
     Vector2f m_principal_point_offset;
+
+    DR_TRAVERSE_CB(Base, m_camera_to_sample, m_sample_to_camera, m_x_fov, m_dx,
+                   m_dy, m_image_rect, m_normalization, m_x_fov,
+                   m_principal_point_offset);
 };
 
 MI_IMPLEMENT_CLASS_VARIANT(PerspectiveCamera, ProjectiveCamera)
