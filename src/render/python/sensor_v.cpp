@@ -91,20 +91,6 @@ public:
     using Sensor::m_needs_sample_2;
     using Sensor::m_needs_sample_3;
     using Sensor::m_film;
-    
-    void traverse_1_cb_ro(void *payload,
-                          void (*fn)(void *, uint64_t)) const override {
-        Sensor::traverse_1_cb_ro(payload, fn);
-        nb::print("traverse_ro");
-        nb::object self = nb::borrow(this->self_py());
-    }
-    void traverse_1_cb_rw(void *payload,
-                          uint64_t (*fn)(void *, uint64_t)) override {
-        Sensor::traverse_1_cb_rw(payload, fn);
-        nb::print("traverse_rw");
-        nb::object self = nb::borrow(this->self_py());
-            // for (field in ...)
-    }
 };
 
 template <typename Ptr, typename Cls> void bind_sensor_generic(Cls &cls) {
