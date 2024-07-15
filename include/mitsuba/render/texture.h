@@ -24,9 +24,6 @@ class MI_EXPORT_LIB Texture : public Object {
 public:
     MI_IMPORT_TYPES()
 
-
-        // DR_TRAVERSE_CB(Object);
-
     /// Destructor
     ~Texture();
 

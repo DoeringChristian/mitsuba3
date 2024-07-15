@@ -64,20 +64,6 @@ class MI_EXPORT_LIB Sampler : public Object {
 public:
     MI_IMPORT_TYPES()
     
-    void traverse_1_cb_ro(void *payload,
-                          void (*fn)(void *, uint64_t)) const override {
-        // std::cout << "traversing Sampler" << std::endl;
-        drjit::traverse_1_fn_ro(m_dimension_index, payload, fn);
-        drjit::traverse_1_fn_ro(m_sample_index, payload, fn);
-    }
-    
-    void traverse_1_cb_rw(void *payload,
-                          uint64_t (*fn)(void *, uint64_t)) override {
-        // Base::traverse_1_cb_rw(payload, fn);
-        drjit::traverse_1_fn_rw(m_dimension_index, payload, fn);
-        drjit::traverse_1_fn_rw(m_sample_index, payload, fn);
-    }
-
     /// Destructor
     ~Sampler();
 
@@ -144,10 +130,10 @@ public:
     /// dr::schedule() variables that represent the internal sampler state
     virtual void schedule_state();
 
-    // /// Traversal callback mechanism for symbolic loops
-    // virtual void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t)) const;
-    // /// Traversal callback mechanism for symbolic loops
-    // virtual void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t));
+    /// Traversal callback mechanism for symbolic loops
+    virtual void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t)) const;
+    /// Traversal callback mechanism for symbolic loops
+    virtual void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t));
 
     MI_DECLARE_CLASS()
 
@@ -174,6 +160,8 @@ protected:
     UInt32 m_dimension_index;
     /// Index of the current sample in the sequence
     UInt32 m_sample_index;
+    //
+    // DR_TRAVERSE_CB(Object, m_dimension_index, m_sample_index);
 };
 
 /// Interface for sampler plugins based on the PCG32 random number generator
@@ -182,24 +170,12 @@ class MI_EXPORT_LIB PCG32Sampler : public Sampler<Float, Spectrum> {
 public:
     MI_IMPORT_BASE(Sampler, m_base_seed, m_wavefront_size)
     MI_IMPORT_TYPES()
-    void traverse_1_cb_ro(void *payload,
-                          void (*fn)(void *, uint64_t)) const override {
-        Base::traverse_1_cb_ro(payload, fn);
-        // std::cout << "traversing PCG32Sampler" << std::endl;
-        drjit::traverse_1_fn_ro(m_rng, payload, fn);
-    }
-
-    void traverse_1_cb_rw(void *payload,
-                          uint64_t (*fn)(void *, uint64_t)) override {
-        Base::traverse_1_cb_rw(payload, fn);
-        drjit::traverse_1_fn_rw(m_rng, payload, fn);
-    }
     using PCG32 = mitsuba::PCG32<UInt32>;
 
     void seed(UInt32 seed, uint32_t wavefront_size = (uint32_t) -1) override;
     void schedule_state() override;
-    // void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t)) const override;
-    // void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t)) override;
+    void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t)) const override;
+    void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t)) override;
 
     MI_DECLARE_CLASS()
 protected:
@@ -209,6 +185,8 @@ protected:
     PCG32Sampler(const PCG32Sampler &sampler);
 protected:
     PCG32 m_rng;
+    //
+    // DR_TRAVERSE_CB(Base, m_rng);
 };
 
 MI_EXTERN_CLASS(Sampler)

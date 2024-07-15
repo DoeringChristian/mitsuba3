@@ -59,8 +59,6 @@ class RegularSpectrum final : public Texture<Float, Spectrum> {
 public:
     MI_IMPORT_TYPES(Texture)
 
-    
-
 public:
     RegularSpectrum(const Properties &props) : Texture(props) {
         ScalarVector2f wavelength_range(
