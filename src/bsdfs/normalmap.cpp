@@ -81,7 +81,7 @@ public:
     MI_IMPORT_BASE(BSDF, m_flags, m_components)
     MI_IMPORT_TYPES(Texture)
 
-    DR_TRAVERSE_CB_BASE(Base, m_nested_bsdf, m_normalmap);
+    DR_TRAVERSE_CB(Base, m_nested_bsdf, m_normalmap);
 
     NormalMap(const Properties &props) : Base(props) {
         for (auto &[name, obj] : props.objects(false)) {

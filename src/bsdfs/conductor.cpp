@@ -221,7 +221,7 @@ public:
     MI_IMPORT_BASE(BSDF, m_flags, m_components)
     MI_IMPORT_TYPES(Texture)
 
-    DR_TRAVERSE_CB_BASE(Base, m_specular_reflectance, m_eta, m_k);
+    DR_TRAVERSE_CB(Base, m_specular_reflectance, m_eta, m_k);
 
     SmoothConductor(const Properties &props) : Base(props) {
         m_flags = BSDFFlags::DeltaReflection | BSDFFlags::FrontSide;
