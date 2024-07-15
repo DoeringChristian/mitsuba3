@@ -71,19 +71,6 @@ public:
     MI_IMPORT_BASE(BSDF, m_flags, m_components)
     MI_IMPORT_TYPES()
 
-    void traverse_1_cb_ro(void *payload,
-                          void (*fn)(void *, uint64_t)) const override {
-        Base ::traverse_1_cb_ro(payload, fn);
-        drjit ::traverse_1_fn_ro(m_brdf[0], payload, fn);
-        drjit ::traverse_1_fn_ro(m_brdf[1], payload, fn);
-    }
-    void traverse_1_cb_rw(void *payload,
-                          uint64_t (*fn)(void *, uint64_t)) override {
-        Base ::traverse_1_cb_rw(payload, fn);
-        drjit ::traverse_1_fn_rw(m_brdf[0], payload, fn);
-        drjit ::traverse_1_fn_rw(m_brdf[1], payload, fn);
-    }
-
     TwoSidedBRDF(const Properties &props) : Base(props) {
         auto bsdfs = props.objects();
         if (bsdfs.size() > 0)
@@ -389,6 +376,8 @@ public:
     MI_DECLARE_CLASS()
 protected:
     ref<Base> m_brdf[2];
+    
+    DR_TRAVERSE_CB(Base, m_brdf[0], m_brdf[1]);
 };
 
 MI_IMPLEMENT_CLASS_VARIANT(TwoSidedBRDF, BSDF)

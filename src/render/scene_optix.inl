@@ -303,7 +303,6 @@ size_t init_optix_config(bool has_meshes, bool has_others, bool has_instances,
 MI_VARIANT void Scene<Float, Spectrum>::accel_init_gpu(const Properties &props) {
     DRJIT_MARK_USED(props);
     if constexpr (dr::is_cuda_v<Float>) {
-        printf("accel_init_gpu\n");
         ScopedPhase phase(ProfilerPhase::InitAccel);
         Log(Info, "Building scene in OptiX ..");
         Timer timer;
@@ -441,7 +440,6 @@ MI_VARIANT void Scene<Float, Spectrum>::accel_init_gpu(const Properties &props) 
 
 MI_VARIANT void Scene<Float, Spectrum>::accel_parameters_changed_gpu() {
     if constexpr (dr::is_cuda_v<Float>) {
-        printf("accel_parameters_changed_gpu\n");
         dr::sync_thread();
         OptixSceneState &s = *(OptixSceneState *) m_accel;
         const OptixConfig &config = optix_configs[s.config_index];

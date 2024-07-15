@@ -40,11 +40,6 @@ public:
                     ShapePtr, ShapeGroup, Sensor, Integrator, Medium, MediumPtr,
                     Mesh)
 
-    void traverse_1_cb_ro(void *payload,
-                          void (*fn)(void *, uint64_t)) const override;
-    void traverse_1_cb_rw(void *payload,
-                          uint64_t (*fn)(void *, uint64_t)) override;
-
     /// Instantiate a scene from a \ref Properties object
     Scene(const Properties &props);
 
@@ -649,6 +644,12 @@ protected:
     std::unique_ptr<DiscreteDistribution<Float>> m_silhouette_distr = nullptr;
 
     bool m_shapes_grad_enabled;
+
+    DR_TRAVERSE_CB(Object, m_accel_handle, m_emitters, m_emitters_dr, m_shapes,
+                   m_shapes_dr, m_shapegroups, m_sensors, m_sensors_dr,
+                   m_children, m_integrator, m_environment, m_emitter_pmf,
+                   m_emitter_distr, m_silhouette_shapes,
+                   m_silhouette_shapes_dr);
 };
 
 /// Dummy function which can be called to ensure that the librender shared

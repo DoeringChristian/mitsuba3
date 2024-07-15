@@ -297,28 +297,6 @@ template <typename Value> struct ContinuousDistribution: drjit::TraversableBase 
     using ScalarVector2u = Vector<uint32_t, 2>;
 
 public:
-
-//     void traverse_1_cb_ro(void *payload,
-//                           void (*fn)(void *, uint64_t)) const override {
-//         drjit ::traverse_1_fn_ro(m_pdf, payload, fn);
-//         drjit ::traverse_1_fn_ro(m_cdf, payload, fn);
-//         drjit ::traverse_1_fn_ro(m_integral, payload, fn);
-//         drjit ::traverse_1_fn_ro(m_normalization, payload, fn);
-//         drjit ::traverse_1_fn_ro(m_interval_size, payload, fn);
-//         drjit ::traverse_1_fn_ro(m_inv_interval_size, payload, fn);
-//         drjit ::traverse_1_fn_ro(m_valid, payload, fn);
-// }
-// void traverse_1_cb_rw(void *payload,
-//                       uint64_t (*fn)(void *, uint64_t)) override {
-//     drjit ::traverse_1_fn_rw(m_pdf, payload, fn);
-//     drjit ::traverse_1_fn_rw(m_cdf, payload, fn);
-//     drjit ::traverse_1_fn_rw(m_integral, payload, fn);
-//     drjit ::traverse_1_fn_rw(m_normalization, payload, fn);
-//     drjit ::traverse_1_fn_rw(m_interval_size, payload, fn);
-//     drjit ::traverse_1_fn_rw(m_inv_interval_size, payload, fn);
-//     drjit ::traverse_1_fn_rw(m_valid, payload, fn);
-// }
-    
     /// Create an uninitialized ContinuousDistribution instance
     ContinuousDistribution() { }
 
@@ -654,7 +632,6 @@ template <typename Value> struct IrregularContinuousDistribution : public drjit:
     using ScalarVector2u = dr::Array<uint32_t, 2>;
 
 public:
-
     /// Create an uninitialized IrregularContinuousDistribution instance
     IrregularContinuousDistribution() { }
 
