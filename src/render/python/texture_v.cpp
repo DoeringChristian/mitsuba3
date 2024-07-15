@@ -80,6 +80,19 @@ public:
     std::string to_string() const override {
         NB_OVERRIDE(to_string);
     }
+
+    public:
+    // TODO: implement traverse callbacks for trampoline
+    void traverse_1_cb_ro(void *payload,
+                          void (*fn)(void *, uint64_t)) const override {
+        Texture::traverse_1_cb_ro(payload, fn);
+        nb::object self = nb::borrow(this->self_py());
+    }
+    void traverse_1_cb_rw(void *payload,
+                          uint64_t (*fn)(void *, uint64_t)) override {
+        Texture::traverse_1_cb_rw(payload, fn);
+            // for (field in ...)
+    }
 };
 
 MI_PY_EXPORT(Texture) {

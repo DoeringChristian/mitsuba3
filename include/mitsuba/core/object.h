@@ -33,8 +33,9 @@ NAMESPACE_BEGIN(mitsuba)
 class MI_EXPORT_LIB Object : public drjit::TraversableBase {
 public:
 
-    virtual void traverse_1_cb_ro(void *, void (*)(void *, uint64_t)) const override{};
-    virtual void traverse_1_cb_rw(void *, uint64_t (*)(void *, uint64_t)) override{};
+    DR_TRAVERSE_CB(drjit::TraversableBase)
+    // void traverse_1_cb_ro(void *, void (*)(void *, uint64_t)) const override{};
+    // void traverse_1_cb_rw(void *, uint64_t (*)(void *, uint64_t)) override{};
     /// Default constructor
     Object() { }
 

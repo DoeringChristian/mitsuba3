@@ -6,6 +6,7 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/tuple.h>
 #include <nanobind/stl/vector.h>
+#include <drjit/python.h>
 #include "signal.h"
 
 #if defined(__APPLE__) || defined(__linux__)
@@ -265,6 +266,25 @@ public:
     std::string to_string() const override {
         NB_OVERRIDE(to_string);
     }
+    
+    void traverse_1_cb_ro(void *payload,
+                          void (*fn)(void *, uint64_t)) const override {
+        Base::traverse_1_cb_ro(payload, fn);
+        nb::print("traverse_ro");
+        nb::object self = nb::borrow(this->self_py());
+    }
+    void traverse_1_cb_rw(void *payload,
+                          uint64_t (*fn)(void *, uint64_t)) override {
+        Base::traverse_1_cb_rw(payload, fn);
+        nb::print("traverse_rw");
+        auto self_py = this->self_py();
+        if(!self_py)
+            return;
+        
+        nb::object self = nb::borrow(self_py);
+        nb::print(self);
+            // for (field in ...)
+    }
 
     using Base::m_hide_emitters;
 };
@@ -277,7 +297,7 @@ MI_PY_EXPORT(Integrator) {
     using PyADIntegrator = PyADIntegrator<Float, Spectrum>;
     using Properties = PropertiesV<Float>;
 
-    MI_PY_CLASS(Integrator, Object)
+    auto cls = MI_PY_CLASS(Integrator, Object)
         .def(
             "render",
             [&](Integrator *integrator, Scene *scene, Sensor *sensor,
@@ -418,4 +438,6 @@ MI_PY_EXPORT(Integrator) {
             "spp"_a = 0)
         .def_method(AdjointIntegrator, sample, "scene"_a, "sensor"_a,
                     "sampler"_a, "block"_a, "sample_scale"_a);
+
+    dr::bind_traverse(cls);
 }

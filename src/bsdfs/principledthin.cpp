@@ -159,7 +159,7 @@ public:
     MI_IMPORT_BASE(BSDF, m_flags, m_components)
     MI_IMPORT_TYPES(Texture, MicrofacetDistribution)
 
-    DR_TRAVERSE_CB_BASE(Base, m_base_color, m_roughness, m_anisotropic, m_sheen,
+    DR_TRAVERSE_CB(Base, m_base_color, m_roughness, m_anisotropic, m_sheen,
                         m_sheen_tint, m_spec_trans, m_flatness, m_spec_tint,
                         m_diff_trans, m_eta_thin);
 

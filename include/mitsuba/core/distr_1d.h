@@ -297,8 +297,6 @@ template <typename Value> struct ContinuousDistribution: drjit::TraversableBase 
     using ScalarVector2u = Vector<uint32_t, 2>;
 
 public:
-    DR_TRAVERSE_CB(m_pdf, m_cdf, m_integral, m_normalization, m_interval_size,
-                   m_inv_interval_size, m_valid);
 
 //     void traverse_1_cb_ro(void *payload,
 //                           void (*fn)(void *, uint64_t)) const override {
@@ -625,6 +623,9 @@ private:
     ScalarVector2f m_range { 0.f, 0.f };
     Vector2u m_valid;
     ScalarFloat m_max = 0.f;
+    
+    DR_TRAVERSE_CB(drjit::TraversableBase, m_pdf, m_cdf, m_integral, m_normalization, m_interval_size,
+                   m_inv_interval_size, m_valid);
 };
 
 /**
@@ -653,7 +654,6 @@ template <typename Value> struct IrregularContinuousDistribution : public drjit:
     using ScalarVector2u = dr::Array<uint32_t, 2>;
 
 public:
-    DR_TRAVERSE_CB(m_nodes, m_pdf, m_cdf, m_integral, m_normalization, m_valid);
 
     /// Create an uninitialized IrregularContinuousDistribution instance
     IrregularContinuousDistribution() { }
@@ -999,6 +999,9 @@ private:
     Vector2u m_valid;
     ScalarFloat m_interval_size = 0.f;
     ScalarFloat m_max = 0.f;
+
+    DR_TRAVERSE_CB(drjit::TraversableBase, m_nodes, m_pdf, m_cdf, m_integral,
+                   m_normalization, m_valid);
 };
 
 template <typename Value>

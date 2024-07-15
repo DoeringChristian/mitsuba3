@@ -76,8 +76,6 @@ public:
     MI_IMPORT_BASE(Texture)
     MI_IMPORT_TYPES()
 
-    DR_TRAVERSE_CB(m_value, m_nested_texture, m_d65);
-
     D65Spectrum(const Properties &props) : Base(props) {
         m_scale = props.get<ScalarFloat>("scale", 1.f);
 
@@ -315,6 +313,8 @@ private:
     ScalarFloat m_scale;
 
     bool m_has_value = false;
+
+    DR_TRAVERSE_CB(Base, m_value, m_nested_texture, m_d65);
 };
 
 MI_IMPLEMENT_CLASS_VARIANT(D65Spectrum, Texture)

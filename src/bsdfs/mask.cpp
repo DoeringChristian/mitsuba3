@@ -90,7 +90,7 @@ public:
     MI_IMPORT_BASE(BSDF, component_count, m_components, m_flags)
     MI_IMPORT_TYPES(Texture)
 
-    DR_TRAVERSE_CB_BASE(Base, m_opacity, m_nested_bsdf);
+    DR_TRAVERSE_CB(Base, m_opacity, m_nested_bsdf);
 
     MaskBSDF(const Properties &props) : Base(props) {
         // Scalar-typed opacity texture
