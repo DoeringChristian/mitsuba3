@@ -267,24 +267,24 @@ public:
         NB_OVERRIDE(to_string);
     }
     
-    void traverse_1_cb_ro(void *payload,
-                          void (*fn)(void *, uint64_t)) const override {
-        Base::traverse_1_cb_ro(payload, fn);
-        nb::print("traverse_ro");
-        nb::object self = nb::borrow(this->self_py());
-    }
-    void traverse_1_cb_rw(void *payload,
-                          uint64_t (*fn)(void *, uint64_t)) override {
-        Base::traverse_1_cb_rw(payload, fn);
-        nb::print("traverse_rw");
-        auto self_py = this->self_py();
-        if(!self_py)
-            return;
-        
-        nb::object self = nb::borrow(self_py);
-        nb::print(self);
-            // for (field in ...)
-    }
+    // void traverse_1_cb_ro(void *payload,
+    //                       void (*fn)(void *, uint64_t)) const override {
+    //     Base::traverse_1_cb_ro(payload, fn);
+    //     nb::print("traverse_ro");
+    //     nb::object self = nb::borrow(this->self_py());
+    // }
+    // void traverse_1_cb_rw(void *payload,
+    //                       uint64_t (*fn)(void *, uint64_t)) override {
+    //     Base::traverse_1_cb_rw(payload, fn);
+    //     nb::print("traverse_rw");
+    //     auto self_py = this->self_py();
+    //     if(!self_py)
+    //         return;
+    //     
+    //     nb::object self = nb::borrow(self_py);
+    //     nb::print(self);
+    //         // for (field in ...)
+    // }
 
     using Base::m_hide_emitters;
 };
