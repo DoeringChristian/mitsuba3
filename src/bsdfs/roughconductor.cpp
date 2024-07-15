@@ -160,7 +160,7 @@ public:
     MI_IMPORT_BASE(BSDF, m_flags, m_components)
     MI_IMPORT_TYPES(Texture, MicrofacetDistribution)
 
-    DR_TRAVERSE_CB_BASE(Base, m_alpha_u, m_alpha_v, m_eta, m_k, m_specular_reflectance);
+    DR_TRAVERSE_CB(Base, m_alpha_u, m_alpha_v, m_eta, m_k, m_specular_reflectance);
 
     RoughConductor(const Properties &props) : Base(props) {
         std::string material = props.string("material", "none");

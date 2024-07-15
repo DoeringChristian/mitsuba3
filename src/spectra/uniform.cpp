@@ -48,7 +48,7 @@ class UniformSpectrum final : public Texture<Float, Spectrum> {
 public:
     MI_IMPORT_TYPES(Texture)
 
-    DR_TRAVERSE_CB(m_value);
+    DR_TRAVERSE_CB(Texture, m_value);
 
     UniformSpectrum(const Properties &props) : Texture(props) {
         m_value = dr::opaque<Float>(props.get<ScalarFloat>("value"));

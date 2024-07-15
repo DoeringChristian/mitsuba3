@@ -81,7 +81,7 @@ public:
     MI_IMPORT_BASE(BSDF, m_flags, m_components)
     MI_IMPORT_TYPES(Texture)
 
-    DR_TRAVERSE_CB_BASE(Base, m_theta, m_transmittance);
+    DR_TRAVERSE_CB(Base, m_theta, m_transmittance);
 
     LinearPolarizer(const Properties &props) : Base(props) {
         m_theta = props.texture<Texture>("theta", 0.f);

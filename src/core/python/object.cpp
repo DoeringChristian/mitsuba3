@@ -4,6 +4,7 @@
 #include <mitsuba/python/python.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
+#include <drjit/python.h>
 
 extern nb::object cast_object(Object *o);
 
@@ -40,7 +41,7 @@ MI_PY_EXPORT(Object) {
             return cast_object(pmgr.create_object(props, class_));
         }, D(PluginManager, create_object));
 
-    nb::class_<Object>(
+    auto obj = nb::class_<Object>(
             m, "Object",
             nb::intrusive_ptr<Object>(
                 [](Object *o, PyObject *po) noexcept { o->set_self_py(po); }),
@@ -64,4 +65,6 @@ MI_PY_EXPORT(Object) {
         .def_prop_ro("ptr", [](Object *self) { return (uintptr_t) self; })
         .def("class_", &Object::class_, nb::rv_policy::copy, D(Object, class))
         .def("__repr__", &Object::to_string, D(Object, to_string));
+    
+    dr::bind_traverse(obj);
 }
