@@ -578,8 +578,8 @@ protected:
     /// Pointer to the scene that owns this mesh
     Scene<Float, Spectrum>* m_scene = nullptr;
 
-    DR_TRAVERSE_CB(Base, m_bbox, m_vertex_positions, m_vertex_texcoords,
-                   m_faces);
+    DR_TRAVERSE_CB(Base, m_bbox, m_vertex_positions, m_vertex_normals,
+                   m_vertex_texcoords, m_faces);
 };
 
 MI_EXTERN_CLASS(Mesh)
