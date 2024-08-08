@@ -362,6 +362,7 @@ class _RenderOp(dr.CustomOp):
                 develop=True,
                 evaluate=False
             )
+            sensor.sampler().seed(0, 1)
             return res
 
     def forward(self):

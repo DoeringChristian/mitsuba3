@@ -146,7 +146,10 @@ protected:
 
     Color<Float, ChannelCount> m_value;
 
-    DR_TRAVERSE_CB(Texture, m_value);
+    DR_TRAVERSE_CB(
+        Texture,
+        m_value
+    );
 };
 
 MI_IMPLEMENT_CLASS_VARIANT(SRGBReflectanceSpectrum, Texture)
