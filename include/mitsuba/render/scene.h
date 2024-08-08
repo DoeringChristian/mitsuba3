@@ -645,11 +645,23 @@ protected:
 
     bool m_shapes_grad_enabled;
 
-    DR_TRAVERSE_CB(Object, m_accel_handle, m_emitters, m_emitters_dr, m_shapes,
-                   m_shapes_dr, m_shapegroups, m_sensors, m_sensors_dr,
-                   m_children, m_integrator, m_environment, m_emitter_pmf,
-                   m_emitter_distr, m_silhouette_shapes,
-                   m_silhouette_shapes_dr);
+    DR_TRAVERSE_CB(
+        Object,
+        m_accel_handle,
+        m_emitters,
+        m_emitters_dr,
+        m_shapes,
+        m_shapes_dr,
+        m_shapegroups,
+        m_sensors,
+        m_sensors_dr,
+        m_children,
+        m_integrator,
+        m_environment,
+        m_emitter_pmf,
+        m_emitter_distr,
+        m_silhouette_shapes
+    );
 };
 
 /// Dummy function which can be called to ensure that the librender shared

@@ -1019,8 +1019,16 @@ protected:
     /// True if the shape has called iniatlize() at least once
     bool m_initialized = false;
 
-    DR_TRAVERSE_CB(Object, m_bsdf, m_emitter, m_sensor, m_interior_medium,
-                   m_exterior_medium, m_to_world, m_to_object);
+    DR_TRAVERSE_CB(
+        Object, 
+        m_bsdf,
+        m_emitter, 
+        m_sensor, 
+        m_interior_medium,
+        m_exterior_medium, 
+        m_to_world, 
+        m_to_object
+    );
 };
 
 // -----------------------------------------------------------------------
