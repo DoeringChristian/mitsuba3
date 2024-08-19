@@ -4,6 +4,7 @@
 #include <mitsuba/core/vector.h>
 #include <mitsuba/core/math.h>
 #include <drjit/dynamic.h>
+#include "drjit/traversable_base.h"
 
 NAMESPACE_BEGIN(mitsuba)
 
@@ -17,7 +18,7 @@ NAMESPACE_BEGIN(mitsuba)
  * initialization. The associated scale factor can be retrieved using the
  * function \ref normalization().
  */
-template <typename Value> struct DiscreteDistribution {
+template <typename Value> struct DiscreteDistribution: drjit::TraversableBase {
     using Float = std::conditional_t<dr::is_static_array_v<Value>,
                                      dr::value_t<Value>, Value>;
     using FloatStorage   = DynamicBuffer<Float>;
@@ -269,6 +270,13 @@ private:
     Float m_sum = 0.f;
     Float m_normalization = 0.f;
     Vector2u m_valid;
+
+    DR_TRAVERSE_CB(drjit::TraversableBase, 
+                   m_pmf, 
+                   m_cdf, 
+                   m_sum, 
+                   m_normalization,
+                   m_valid);
 };
 
 /**
