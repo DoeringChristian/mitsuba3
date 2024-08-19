@@ -1,3 +1,4 @@
+#include <strings.h>
 NAMESPACE_BEGIN(mitsuba)
 
 template <typename Float, typename Spectrum>
@@ -318,6 +319,18 @@ Scene<Float, Spectrum>::ray_intersect_naive_cpu(const Ray3f &ray, Mask active) c
         kdtree->template ray_intersect_naive<false>(ray, active);
 
     return pi.compute_surface_interaction(ray, +RayFlags::All, active);
+}
+
+MI_VARIANT void
+Scene<Float, Spectrum>::traverse_1_cb_ro_cpu(void *payload,
+                                             void (*fn)(void *, uint64_t)) const{
+    
+}
+
+MI_VARIANT void
+Scene<Float, Spectrum>::traverse_1_cb_rw_cpu(void *payload,
+                                             uint64_t (*fn)(void *, uint64_t)) {
+
 }
 
 NAMESPACE_END(mitsuba)

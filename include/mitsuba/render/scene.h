@@ -644,24 +644,42 @@ protected:
     std::unique_ptr<DiscreteDistribution<Float>> m_silhouette_distr = nullptr;
 
     bool m_shapes_grad_enabled;
+    
+    void traverse_1_cb_ro_cpu(void *payload, void (*fn)(void *, uint64_t)) const;
+    void traverse_1_cb_rw_cpu(void *payload, uint64_t (*fn)(void *, uint64_t));
 
-    DR_TRAVERSE_CB(
-        Object,
-        m_accel_handle,
-        m_emitters,
-        m_emitters_dr,
-        m_shapes,
-        m_shapes_dr,
-        m_shapegroups,
-        m_sensors,
-        m_sensors_dr,
-        m_children,
-        m_integrator,
-        m_environment,
-        m_emitter_pmf,
-        m_emitter_distr,
-        m_silhouette_shapes
-    );
+public:
+    void traverse_1_cb_ro(void *payload,
+                          void (*fn)(void *, uint64_t)) const override {
+        if constexpr (!std::is_same_v<Object, drjit::TraversableBase>)
+            Object::traverse_1_cb_ro(payload, fn);
+        DRJIT_MAP(DR_TRAVERSE_MEMBER_RO, m_accel_handle, m_emitters,
+                  m_emitters_dr, m_shapes, m_shapes_dr, m_shapegroups,
+                  m_sensors, m_sensors_dr, m_children, m_integrator,
+                  m_environment, m_emitter_pmf, m_emitter_distr,
+                  m_silhouette_shapes)
+        if constexpr(dr::is_cuda_v<Float>){
+            
+        }else{
+            traverse_1_cb_ro_cpu(payload, fn);
+        }
+    }
+
+    void traverse_1_cb_rw(void *payload,
+                          uint64_t (*fn)(void *, uint64_t)) override {
+        if constexpr (!std::is_same_v<Object, drjit::TraversableBase>)
+            Object::traverse_1_cb_rw(payload, fn);
+        DRJIT_MAP(DR_TRAVERSE_MEMBER_RW, m_accel_handle, m_emitters,
+                  m_emitters_dr, m_shapes, m_shapes_dr, m_shapegroups,
+                  m_sensors, m_sensors_dr, m_children, m_integrator,
+                  m_environment, m_emitter_pmf, m_emitter_distr,
+                  m_silhouette_shapes)
+        if constexpr(dr::is_cuda_v<Float>){
+            
+        }else{
+            traverse_1_cb_rw_cpu(payload, fn);
+        }
+    }
 };
 
 /// Dummy function which can be called to ensure that the librender shared
