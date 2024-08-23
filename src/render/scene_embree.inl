@@ -204,7 +204,10 @@ MI_VARIANT void Scene<Float, Spectrum>::accel_parameters_changed_cpu() {
             (void *) m_accel
         );
         
-        // TODO: add comment
+        // To support frozen functions the func_ptr has to exist as a variable
+        // when the scene is traversed.
+        // Since vector width should not change, so we determine the
+        // intersection function here.
         uint32_t jit_width = jit_llvm_vector_width();
         void *func_ptr = nullptr;
         switch (jit_width) {
