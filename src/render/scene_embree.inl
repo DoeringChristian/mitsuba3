@@ -204,6 +204,7 @@ MI_VARIANT void Scene<Float, Spectrum>::accel_parameters_changed_cpu() {
             (void *) m_accel
         );
         
+        // TODO: add comment
         uint32_t jit_width = jit_llvm_vector_width();
         void *func_ptr = nullptr;
         switch (jit_width) {
