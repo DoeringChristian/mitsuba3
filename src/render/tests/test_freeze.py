@@ -2,12 +2,16 @@ from typing import Any, Callable, List
 import pytest
 import drjit as dr
 import mitsuba as mi
+import glob
+from os.path import join
 
-def test01_cornell_box(variants_vec_rgb):
-    print(f"{variants_vec_rgb=}")
+from mitsuba.scalar_rgb.test.util import find_resource
+
+@pytest.mark.parametrize("scene_name", ["cornell_box"])
+def test01_forward(variants_vec_rgb, scene_name):
     
-    w = 128
-    h = 128
+    w = 16
+    h = 16
 
     n = 5
     
@@ -18,13 +22,8 @@ def test01_cornell_box(variants_vec_rgb):
             result = mi.render(scene, spp=1)
         return result
 
-    def run(n: int, func: Callable[mi.Scene, Any]) -> List[mi.TensorXf]:
+    def run(scene: mi.Scene, n: int, func: Callable[mi.Scene, Any]) -> List[mi.TensorXf]:
 
-        scene = mi.cornell_box()
-        scene["sensor"]["film"]["width"] = w
-        scene["sensor"]["film"]["height"] = h
-        scene = mi.load_dict(scene)
-        
         params = mi.traverse(scene)
         value = mi.Float(params[k].x)
         
@@ -40,11 +39,20 @@ def test01_cornell_box(variants_vec_rgb):
             
         return images
             
-    images_ref = run(n, func)
-    images_frozen = run(n, dr.freeze(func))
+    def load_scene(name: str):
+        
+        if name == "cornell_box":
+            scene = mi.cornell_box()
+            scene["sensor"]["film"]["width"] = w
+            scene["sensor"]["film"]["height"] = h
+            scene = mi.load_dict(scene)
+        return scene
+
+    scene = load_scene(scene_name)
+    images_ref = run(scene, n, func)
+    scene = load_scene(scene_name)
+    images_frozen = run(scene, n, dr.freeze(func))
 
     for (ref, frozen) in zip(images_ref, images_frozen):
-        print(f"{ref=}")
-        print(f"{frozen=}")
         assert dr.allclose(ref, frozen)
         
