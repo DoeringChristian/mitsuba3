@@ -80,7 +80,7 @@ def test02_pose_estimation(variants_vec_rgb):
     def mse(image, image_ref):
         return dr.sum(dr.square(image - image_ref), axis=None)
         
-    def optimize(scene, opt, ref, initial_vertex_positions, other):
+    def optimize(scene, ref, initial_vertex_positions, other):
         params = mi.traverse(scene)
 
         image = mi.render(scene, params, spp=1, seed = 0)
@@ -145,7 +145,6 @@ def test02_pose_estimation(variants_vec_rgb):
             with dr.profile_range("optimize"):
                 image, loss = optimize(
                     scene,
-                    opt,
                     image_ref,
                     initial_vertex_positions,
                     [
@@ -172,3 +171,62 @@ def test02_pose_estimation(variants_vec_rgb):
     # assert dr.allclose(trans_ref, trans_frozen, 0.1)
     # assert dr.allclose(angle_ref, angle_frozen)
     # assert dr.allclose(img_ref, img_frozen)
+
+def test03_optimize_color(variants_vec_rgb):
+    k = "red.reflectance.value"
+    w = 128
+    h = 128
+    n = 10
+    
+    def mse(image, image_ref):
+        return dr.sum(dr.square(image - image_ref), axis=None)
+
+    def optimize(scene, image_ref):
+        params = mi.traverse(scene)
+        params.keep(k)
+        
+        image = mi.render(scene, params, spp=1)
+        
+        loss = mse(image, image_ref)
+
+        dr.backward(loss)
+
+        return image, loss
+
+    def run(n: int, optimize):
+        
+        scene = mi.cornell_box()
+        scene["integrator"] = {
+            "type": "prb",
+        }
+        scene["sensor"]["film"]["width"] = w
+        scene["sensor"]["film"]["height"] = h
+        scene = mi.load_dict(scene)
+        
+        image_ref = mi.render(scene, spp=512)
+        
+        params = mi.traverse(scene)
+        params.keep(k)
+        
+        opt = mi.ad.Adam(lr=0.05)
+        opt[k] = mi.Color3f(0.01, 0.2, 0.9)
+
+        for i in range(n):
+            params = mi.traverse(scene)
+            params.keep(k)
+            params.update(opt)
+
+            image, loss = optimize(scene, image_ref)
+
+            opt.step()
+            
+
+        return image, opt[k]
+
+    image_ref, param_ref = run(n, optimize)
+    
+    image_frozen, param_frozen = run(n, dr.freeze(optimize))
+
+    # Optimizing the reflectance is not as prone to divergence, 
+    # therefore we can test if the two methods produce the same results
+    assert dr.allclose(param_ref, param_frozen)
