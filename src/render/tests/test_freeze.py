@@ -7,8 +7,7 @@ from os.path import join, realpath, dirname, basename, splitext, exists
 
 from mitsuba.scalar_rgb.test.util import find_resource
 
-@pytest.mark.parametrize("scene_name", ["cornell_box"])
-def test01_forward(variants_vec_rgb, scene_name):
+def test01_cornell_box(variants_vec_rgb):
     
     w = 16
     h = 16
@@ -22,7 +21,12 @@ def test01_forward(variants_vec_rgb, scene_name):
             result = mi.render(scene, spp=1)
         return result
 
-    def run(scene: mi.Scene, n: int, func: Callable[mi.Scene, Any]) -> List[mi.TensorXf]:
+    def run(n: int, func: Callable[mi.Scene, Any]) -> List[mi.TensorXf]:
+        
+        scene = mi.cornell_box()
+        scene["sensor"]["film"]["width"] = w
+        scene["sensor"]["film"]["height"] = h
+        scene = mi.load_dict(scene)
 
         params = mi.traverse(scene)
         value = mi.Float(params[k].x)
@@ -38,20 +42,9 @@ def test01_forward(variants_vec_rgb, scene_name):
             images.append(img)
             
         return images
-            
-    def load_scene(name: str):
-        
-        if name == "cornell_box":
-            scene = mi.cornell_box()
-            scene["sensor"]["film"]["width"] = w
-            scene["sensor"]["film"]["height"] = h
-            scene = mi.load_dict(scene)
-        return scene
 
-    scene = load_scene(scene_name)
-    images_ref = run(scene, n, func)
-    scene = load_scene(scene_name)
-    images_frozen = run(scene, n, dr.freeze(func))
+    images_ref = run(n, func)
+    images_frozen = run(n, dr.freeze(func))
 
     for (ref, frozen) in zip(images_ref, images_frozen):
         assert dr.allclose(ref, frozen)
@@ -230,3 +223,57 @@ def test03_optimize_color(variants_vec_rgb):
     # Optimizing the reflectance is not as prone to divergence, 
     # therefore we can test if the two methods produce the same results
     assert dr.allclose(param_ref, param_frozen)
+    
+    
+@pytest.mark.parametrize("scene_name", ["cornell_box", "arealight_path"])
+def test04_forward(variants_vec_rgb, scene_name):
+    dr.set_log_level(dr.LogLevel.Trace)
+    dr.set_flag(dr.JitFlag.ReuseIndices, False)
+    
+    w = 16
+    h = 16
+
+    n = 5
+    
+    k = "light.emitter.radiance.value"
+    
+    def func(scene: mi.Scene) -> mi.TensorXf:
+        with dr.profile_range("render"):
+            result = mi.render(scene, spp=1)
+        return result
+
+    def run(scene: mi.Scene, n: int, func: Callable[mi.Scene, Any]) -> List[mi.TensorXf]:
+
+        images = []
+        for i in range(n):
+            
+            img = func(scene)
+            dr.eval(img)
+
+            images.append(img)
+            
+        return images
+            
+    def load_scene(name: str):
+        if name == "arealight_path":
+            scene = mi.load_file(
+                find_resource(
+                    "resources/data/tests/scenes/bsdf_spheres/test_arealight_path.xml"
+                )
+            )
+
+        if name == "cornell_box":
+            scene = mi.cornell_box()
+            scene["sensor"]["film"]["width"] = w
+            scene["sensor"]["film"]["height"] = h
+            scene = mi.load_dict(scene)
+        return scene
+
+    scene = load_scene(scene_name)
+    images_ref = run(scene, n, func)
+    scene = load_scene(scene_name)
+    images_frozen = run(scene, n, dr.freeze(func))
+
+    for (ref, frozen) in zip(images_ref, images_frozen):
+        assert dr.allclose(ref, frozen)
+        
