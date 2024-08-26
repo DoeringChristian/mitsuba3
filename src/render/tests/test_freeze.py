@@ -273,10 +273,9 @@ def test04_bsdf(variants_vec_rgb, bsdf):
         scene = mi.cornell_box()
         scene["sensor"]["film"]["width"] = w
         scene["sensor"]["film"]["height"] = h
-        if bsdf == "cornell_box":
-            scene["white"] = {
-                "type": bsdf,
-            }
+        scene["white"] = {
+            "type": bsdf,
+        }
         scene = mi.load_dict(scene)
         return scene
 
