@@ -221,8 +221,6 @@ public:
     MI_IMPORT_BASE(BSDF, m_flags, m_components)
     MI_IMPORT_TYPES(Texture)
 
-    DR_TRAVERSE_CB(Base, m_specular_reflectance, m_eta, m_k);
-
     SmoothConductor(const Properties &props) : Base(props) {
         m_flags = BSDFFlags::DeltaReflection | BSDFFlags::FrontSide;
         m_components.push_back(m_flags);
@@ -332,6 +330,8 @@ public:
 private:
     ref<Texture> m_specular_reflectance;
     ref<Texture> m_eta, m_k;
+
+    DR_TRAVERSE_CB(Base, m_specular_reflectance, m_eta, m_k);
 };
 
 MI_IMPLEMENT_CLASS_VARIANT(SmoothConductor, BSDF)

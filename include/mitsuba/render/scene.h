@@ -659,7 +659,7 @@ public:
                   m_environment, m_emitter_pmf, m_emitter_distr,
                   m_silhouette_shapes)
         if constexpr(dr::is_cuda_v<Float>){
-            
+            // Nothing to traverse for now
         }else{
             traverse_1_cb_ro_cpu(payload, fn);
         }
@@ -675,7 +675,7 @@ public:
                   m_environment, m_emitter_pmf, m_emitter_distr,
                   m_silhouette_shapes)
         if constexpr(dr::is_cuda_v<Float>){
-            
+            // Nothing to traverse for now
         }else{
             traverse_1_cb_rw_cpu(payload, fn);
         }

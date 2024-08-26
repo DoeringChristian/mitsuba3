@@ -130,11 +130,6 @@ public:
     /// dr::schedule() variables that represent the internal sampler state
     virtual void schedule_state();
 
-    /// Traversal callback mechanism for symbolic loops
-    virtual void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t)) const;
-    /// Traversal callback mechanism for symbolic loops
-    virtual void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t));
-
     MI_DECLARE_CLASS()
 
 protected:
@@ -160,8 +155,8 @@ protected:
     UInt32 m_dimension_index;
     /// Index of the current sample in the sequence
     UInt32 m_sample_index;
-    //
-    // DR_TRAVERSE_CB(Object, m_dimension_index, m_sample_index);
+
+    DR_TRAVERSE_CB(Object, m_dimension_index, m_sample_index);
 };
 
 /// Interface for sampler plugins based on the PCG32 random number generator
