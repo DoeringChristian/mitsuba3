@@ -160,8 +160,6 @@ public:
     MI_IMPORT_BASE(BSDF, m_flags, m_components)
     MI_IMPORT_TYPES(Texture, MicrofacetDistribution)
 
-    DR_TRAVERSE_CB(Base, m_alpha_u, m_alpha_v, m_eta, m_k, m_specular_reflectance);
-
     RoughConductor(const Properties &props) : Base(props) {
         std::string material = props.string("material", "none");
         if (props.has_property("eta") || material == "none") {
@@ -546,6 +544,9 @@ private:
     ref<Texture> m_k;
     /// Specular reflectance component
     ref<Texture> m_specular_reflectance;
+
+    DR_TRAVERSE_CB(Base, m_alpha_u, m_alpha_v, m_eta, m_k,
+                   m_specular_reflectance);
 };
 
 MI_IMPLEMENT_CLASS_VARIANT(RoughConductor, BSDF)

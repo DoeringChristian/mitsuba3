@@ -356,7 +356,7 @@ private:
     mutable ref<Bitmap> m_bitmap;
     TensorXf* m_tensor;
 
-    DR_TRAVERSE_CB(Texture, m_tensor, m_bitmap);
+    DR_TRAVERSE_CB(Texture, *m_tensor, m_bitmap);
 };
 
 template <typename Float, typename Spectrum, typename StoredType>
