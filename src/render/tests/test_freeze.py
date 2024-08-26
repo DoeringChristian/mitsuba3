@@ -237,6 +237,7 @@ def test03_optimize_color(variants_vec_rgb):
         "hair",
         "plastic",
         "roughplastic",
+        "twosided",
         "principled",
         "principledthin",
     ],
@@ -273,9 +274,18 @@ def test04_bsdf(variants_vec_rgb, bsdf):
         scene = mi.cornell_box()
         scene["sensor"]["film"]["width"] = w
         scene["sensor"]["film"]["height"] = h
-        scene["white"] = {
-            "type": bsdf,
-        }
+        if bsdf == "twosided":
+            scene["white"] = {
+                "type": "twosided",
+                "material": {
+                    "type": "diffuse",
+                    "reflectance": {"type": "rgb", "value": 0.4},
+                },
+            }
+        else:
+            scene["white"] = {
+                "type": bsdf,
+            }
         scene = mi.load_dict(scene)
         return scene
 
