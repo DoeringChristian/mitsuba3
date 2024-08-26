@@ -242,8 +242,8 @@ def test03_optimize_color(variants_vec_rgb):
     ],
 )
 def test04_bsdf(variants_vec_rgb, bsdf):
-    dr.set_log_level(dr.LogLevel.Trace)
-    dr.set_flag(dr.JitFlag.ReuseIndices, False)
+    # dr.set_log_level(dr.LogLevel.Trace)
+    # dr.set_flag(dr.JitFlag.ReuseIndices, False)
     
     w = 16
     h = 16

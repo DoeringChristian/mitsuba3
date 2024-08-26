@@ -69,18 +69,6 @@ MI_VARIANT void Sampler<Float, Spectrum>::schedule_state() {
 }
 
 MI_VARIANT void
-Sampler<Float, Spectrum>::traverse_1_cb_ro(void * /*payload*/,
-                                           void (* /*fn*/)(void *, uint64_t)) const {
-    NotImplementedError("traverse_1_cb_ro");
-}
-
-MI_VARIANT void
-Sampler<Float, Spectrum>::traverse_1_cb_rw(void * /*payload*/,
-                                           uint64_t (* /*fn*/)(void *, uint64_t)) {
-    NotImplementedError("traverse_1_cb_rw");
-}
-
-MI_VARIANT void
 Sampler<Float, Spectrum>::set_samples_per_wavefront(uint32_t samples_per_wavefront) {
     if constexpr (!dr::is_array_v<Float>)
         Throw("set_samples_per_wavefront should not be used in scalar variants of the renderer.");

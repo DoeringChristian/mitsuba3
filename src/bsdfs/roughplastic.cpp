@@ -168,10 +168,6 @@ public:
     MI_IMPORT_BASE(BSDF, m_flags, m_components)
     MI_IMPORT_TYPES(Texture, MicrofacetDistribution)
 
-    DR_TRAVERSE_CB(Base, m_diffuse_reflectance, m_specular_reflectance,
-                        m_eta, m_inv_eta_2, m_alpha, m_specular_sampling_weight,
-                        m_external_transmittance, m_internal_reflectance);
-
     RoughPlastic(const Properties &props) : Base(props) {
         /// Specifies the internal index of refraction at the interface
         ScalarFloat int_ior = lookup_ior(props, "int_ior", "polypropylene");
@@ -540,6 +536,10 @@ private:
     bool m_sample_visible;
     DynamicBuffer<Float> m_external_transmittance;
     Float m_internal_reflectance;
+
+    DR_TRAVERSE_CB(Base, m_diffuse_reflectance, m_specular_reflectance,
+                        m_eta, m_inv_eta_2, m_alpha, m_specular_sampling_weight,
+                        m_external_transmittance, m_internal_reflectance);
 };
 
 MI_IMPLEMENT_CLASS_VARIANT(RoughPlastic, BSDF);
