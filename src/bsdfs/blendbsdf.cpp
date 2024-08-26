@@ -77,8 +77,6 @@ public:
     MI_IMPORT_BASE(BSDF, m_flags, m_components)
     MI_IMPORT_TYPES(Texture)
 
-    DR_TRAVERSE_CB(Base, m_weight, m_nested_bsdf[0], m_nested_bsdf[1]);
-
     BlendBSDF(const Properties &props) : Base(props) {
         int bsdf_index = 0;
         for (auto &[name, obj] : props.objects(false)) {
@@ -239,6 +237,8 @@ public:
 protected:
     ref<Texture> m_weight;
     ref<Base> m_nested_bsdf[2];
+
+    DR_TRAVERSE_CB(Base, m_weight, m_nested_bsdf[0], m_nested_bsdf[1])
 };
 
 MI_IMPLEMENT_CLASS_VARIANT(BlendBSDF, BSDF)
