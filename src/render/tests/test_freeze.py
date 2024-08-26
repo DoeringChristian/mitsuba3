@@ -225,8 +225,23 @@ def test03_optimize_color(variants_vec_rgb):
     assert dr.allclose(param_ref, param_frozen)
     
     
-@pytest.mark.parametrize("scene_name", ["cornell_box", "arealight_path"])
-def test04_forward(variants_vec_rgb, scene_name):
+@pytest.mark.parametrize(
+    "bsdf",
+    [
+        "diffuse",
+        "dielectric",
+        "thindielectric",
+        "roughdielectric",
+        "conductor",
+        "roughconductor",
+        "hair",
+        "plastic",
+        "roughplastic",
+        "principled",
+        "principledthin",
+    ],
+)
+def test04_bsdf(variants_vec_rgb, bsdf):
     dr.set_log_level(dr.LogLevel.Trace)
     dr.set_flag(dr.JitFlag.ReuseIndices, False)
     
@@ -254,24 +269,20 @@ def test04_forward(variants_vec_rgb, scene_name):
             
         return images
             
-    def load_scene(name: str):
-        if name == "arealight_path":
-            scene = mi.load_file(
-                find_resource(
-                    "resources/data/tests/scenes/bsdf_spheres/test_arealight_path.xml"
-                )
-            )
-
-        if name == "cornell_box":
-            scene = mi.cornell_box()
-            scene["sensor"]["film"]["width"] = w
-            scene["sensor"]["film"]["height"] = h
-            scene = mi.load_dict(scene)
+    def load_scene(bsdf: str):
+        scene = mi.cornell_box()
+        scene["sensor"]["film"]["width"] = w
+        scene["sensor"]["film"]["height"] = h
+        if bsdf == "cornell_box":
+            scene["white"] = {
+                "type": bsdf,
+            }
+        scene = mi.load_dict(scene)
         return scene
 
-    scene = load_scene(scene_name)
+    scene = load_scene(bsdf)
     images_ref = run(scene, n, func)
-    scene = load_scene(scene_name)
+    scene = load_scene(bsdf)
     images_frozen = run(scene, n, dr.freeze(func))
 
     for (ref, frozen) in zip(images_ref, images_frozen):
