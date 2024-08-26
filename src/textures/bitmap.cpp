@@ -890,7 +890,7 @@ protected:
     mutable std::mutex m_mutex;
     std::unique_ptr<DiscreteDistribution2D<Float>> m_distr2d;
 
-    DR_TRAVERSE_CB(Texture, m_texture, m_distr2d);
+    DR_TRAVERSE_CB(Texture, m_texture, m_mean, m_distr2d);
 };
 
 MI_IMPLEMENT_CLASS_VARIANT(BitmapTexture, Texture)
