@@ -237,6 +237,8 @@ def test03_optimize_color(variants_vec_rgb):
         "hair",
         "plastic",
         "roughplastic",
+        "bumpmap",
+        "normalmap",
         "blendbsdf",
         "mask",
         "twosided",
@@ -296,6 +298,22 @@ def test04_bsdf(variants_vec_rgb, bsdf):
                 },
                 # Fetch the opacity mask from a monochromatic texture
                 "opacity": {"type": "bitmap", "filename": find_resource("resources/data/common/textures/leaf_mask.png")},
+            }
+        elif bsdf == "bumpmap":
+            scene["white"] = {
+                "type": "bumpmap",
+                "arbitrary": {"type": "bitmap", "raw": True, "filename": find_resource("resources/data/common/textures/floor_tiles_bumpmap.png")},
+                "bsdf": {"type": "roughplastic"},
+            }
+        elif bsdf == "normalmap":
+            scene["white"] = {
+                "type": "normalmap",
+                "normalmap": {
+                    "type": "bitmap",
+                    "raw": True,
+                    "filename": find_resource("resources/data/common/textures/floor_tiles_normalmap.jpg"),
+                },
+                "bsdf": {"type": "roughplastic"},
             }
         elif bsdf == "blendbsdf":
             scene["white"] = {
