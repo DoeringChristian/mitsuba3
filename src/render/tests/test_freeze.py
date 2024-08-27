@@ -237,6 +237,8 @@ def test03_optimize_color(variants_vec_rgb):
         "hair",
         "plastic",
         "roughplastic",
+        "blendbsdf",
+        "mask",
         "twosided",
         "principled",
         "principledthin",
@@ -245,13 +247,12 @@ def test03_optimize_color(variants_vec_rgb):
 def test04_bsdf(variants_vec_rgb, bsdf):
     # dr.set_log_level(dr.LogLevel.Trace)
     # dr.set_flag(dr.JitFlag.ReuseIndices, False)
+    # dr.set_flag(dr.JitFlag.Debug, True)
     
     w = 16
     h = 16
 
     n = 5
-    
-    k = "light.emitter.radiance.value"
     
     def func(scene: mi.Scene) -> mi.TensorXf:
         with dr.profile_range("render"):
@@ -281,6 +282,35 @@ def test04_bsdf(variants_vec_rgb, bsdf):
                     "type": "diffuse",
                     "reflectance": {"type": "rgb", "value": 0.4},
                 },
+            }
+        elif bsdf == "mask":
+            scene["white"] = {
+                "type": "mask",
+                # Base material: a two-sided textured diffuse BSDF
+                "material": {
+                    "type": "twosided",
+                    "bsdf": {
+                        "type": "diffuse",
+                        "reflectance": {"type": "bitmap", "filename": find_resource("resources/data/common/textures/wood.jpg")},
+                    },
+                },
+                # Fetch the opacity mask from a monochromatic texture
+                "opacity": {"type": "bitmap", "filename": find_resource("resources/data/common/textures/leaf_mask.png")},
+            }
+        elif bsdf == "blendbsdf":
+            scene["white"] = {
+                "type": "blendbsdf",
+                "weight": {"type": "bitmap", "filename": find_resource("resources/data/common/textures/noise_01.jpg")},
+                "bsdf_0": {"type": "conductor"},
+                "bsdf_1": {"type": "roughplastic", "diffuse_reflectance": 0.1},
+            }
+        elif bsdf == "diffuse":
+            scene["white"] = {
+                "type": "diffuse",
+                "reflectance": {
+                    "type": "bitmap",
+                    "filename": find_resource("resources/data/common/textures/wood.jpg"),
+                }
             }
         else:
             scene["white"] = {
