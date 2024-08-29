@@ -8,6 +8,7 @@ from os.path import join, realpath, dirname, basename, splitext, exists
 from mitsuba.scalar_rgb.test.util import find_resource
 
 def test01_cornell_box(variants_vec_rgb):
+    # dr.set_flag(dr.JitFlag.Debug, True)
     
     w = 16
     h = 16
@@ -21,7 +22,7 @@ def test01_cornell_box(variants_vec_rgb):
             result = mi.render(scene, spp=1)
         return result
 
-    def run(n: int, func: Callable[mi.Scene, Any]) -> List[mi.TensorXf]:
+    def run(n: int, func: Callable[[mi.Scene, Any], mi.TensorXf]) -> List[mi.TensorXf]:
         
         scene = mi.cornell_box()
         scene["sensor"]["film"]["width"] = w
@@ -261,7 +262,7 @@ def test04_bsdf(variants_vec_rgb, bsdf):
             result = mi.render(scene, spp=1)
         return result
 
-    def run(scene: mi.Scene, n: int, func: Callable[mi.Scene, Any]) -> List[mi.TensorXf]:
+    def run(scene: mi.Scene, n: int, func: Callable[[mi.Scene], mi.TensorXf]) -> List[mi.TensorXf]:
 
         images = []
         for i in range(n):
@@ -341,7 +342,136 @@ def test04_bsdf(variants_vec_rgb, bsdf):
     images_ref = run(scene, n, func)
     scene = load_scene(bsdf)
     images_frozen = run(scene, n, dr.freeze(func))
-
+    
     for (ref, frozen) in zip(images_ref, images_frozen):
         assert dr.allclose(ref, frozen)
         
+
+@pytest.mark.parametrize(
+    "emitter",
+    [
+        "area",
+        "point",
+        "constant",
+        "envmap",
+        "spot",
+        "projector",
+        "directional",
+        "directionalarea",
+    ],
+)
+def test05_emitter(variants_vec_rgb, emitter):
+    dr.set_log_level(dr.LogLevel.Trace)
+    dr.set_flag(dr.JitFlag.ReuseIndices, False)
+    # dr.set_flag(dr.JitFlag.Debug, True)
+    
+    w = 16
+    h = 16
+
+    n = 5
+    
+    def func(scene: mi.Scene) -> mi.TensorXf:
+        with dr.profile_range("render"):
+            result = mi.render(scene, spp=1)
+        return result
+
+    def load_scene():
+        scene = mi.cornell_box()
+        scene["sensor"]["film"]["width"] = w
+        scene["sensor"]["film"]["height"] = h
+
+        if emitter == "point":
+            scene["emitter"] = {
+                "type": "point",
+                "position": [0.0, 0.0, 0.0],
+                "intensity": {
+                    "type": "rgb",
+                    "value": mi.ScalarColor3d(50, 50, 50),
+                },
+            }
+        elif emitter == "constant":
+            scene["emitter"] = {
+                "type": "constant",
+                "radiance": {
+                    "type": "rgb",
+                    "value": 1.0,
+                },
+            }
+        elif emitter == "envmap":
+            scene["emitter"] = {
+                "type": "envmap",
+                "filename": find_resource(
+                    "resources/data/scenes/matpreview/envmap.exr"
+                ),
+            }
+        elif emitter == "spot":
+            scene["emitter"] = {
+                "type": "spot",
+                "to_world": mi.ScalarTransform4f().look_at(
+                    origin=[0, 0, 0],
+                    target=[0, -1, 0],
+                    up=[0, 0, 1],
+                ),
+                "intensity": {
+                    "type": "rgb",
+                    "value": 1.0,
+                },
+            }
+        elif emitter == "projector":
+            scene["emitter"] = {
+                "type": "projector",
+                "to_world": mi.ScalarTransform4f().look_at(
+                    origin=[0, 0, 0],
+                    target=[0, -1, 0],
+                    up=[0, 0, 1],
+                ),
+                "fov": 45,
+                "irradiance": {
+                    "type": "bitmap",
+                    "filename": find_resource(
+                        "resources/data/common/textures/flower.bmp"
+                    ),
+                },
+            }
+        elif emitter == "directional":
+            scene["emitter"] = {
+                "type": "directional",
+                "direction": [0, 0, -1],
+                "irradiance": {
+                    "type": "rgb",
+                    "value": 1.0,
+                },
+            }
+        elif emitter == "directionalarea":
+            scene["light"]["emitter"] = {
+                "type": "directionalarea",
+                "radiance": {
+                    "type": "rgb",
+                    "value": 1.0,
+                },
+            }
+
+        scene = mi.load_dict(scene)
+        return scene
+
+    def run(n: int, func: Callable[[mi.Scene], mi.TensorXf]) -> List[mi.TensorXf]:
+
+        scene = load_scene()
+
+        images = []
+        for i in range(n):
+            
+            img = func(scene)
+            dr.eval(img)
+
+            images.append(img)
+            
+        return images
+    
+
+    # scene = load_scene()
+    images_ref = run(n, func)
+    images_frozen = run(n, dr.freeze(func))
+    
+    for (ref, frozen) in zip(images_ref, images_frozen):
+        assert dr.allclose(ref, frozen)
