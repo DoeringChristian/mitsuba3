@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <mutex>
 #include <drjit/dynamic.h>
+#include "drjit/array_traverse.h"
 
 NAMESPACE_BEGIN(mitsuba)
 
@@ -481,6 +482,8 @@ protected:
         MeshAttribute migrate(AllocType at) const {
             return MeshAttribute { size, type, dr::migrate(buf, at) };
         }
+
+        DRJIT_STRUCT_NODEF(MeshAttribute, buf);
     };
 
     template <uint32_t Size, bool Raw>
@@ -587,6 +590,7 @@ protected:
         m_faces,
         m_E2E,
         m_sil_dedge_pmf,
+        m_mesh_attributes,
         m_area_pmf,
         m_parameterization
     );
