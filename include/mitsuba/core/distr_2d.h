@@ -819,6 +819,8 @@ protected:
                 return dr::gather<Float>(data, i0, active);
             }
         }
+
+        DRJIT_STRUCT_NODEF(Level, data)
     };
 
     /// MIP hierarchy over linearly interpolated patches
@@ -827,7 +829,7 @@ protected:
     /// Number of bilinear patches in the X/Y dimension - 1
     ScalarVector2u m_max_patch_index;
 
-    DR_TRAVERSE_CB(Base)
+    DR_TRAVERSE_CB(Base, m_levels)
 };
 
 /**
