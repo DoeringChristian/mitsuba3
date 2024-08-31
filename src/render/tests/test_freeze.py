@@ -3,12 +3,56 @@ import pytest
 import drjit as dr
 import mitsuba as mi
 import glob
+import gc
 from os.path import join, realpath, dirname, basename, splitext, exists
 
 from mitsuba.scalar_rgb.test.util import find_resource
 
 def test01_cornell_box(variants_vec_rgb):
-    # dr.set_flag(dr.JitFlag.Debug, True)
+    
+    w = 16
+    h = 16
+
+    n = 5
+    
+    k = "light.emitter.radiance.value"
+    
+    def func(scene: mi.Scene, x) -> mi.TensorXf:
+        with dr.profile_range("render"):
+            result = mi.render(scene, spp=1)
+        return result
+
+    def run(n: int, func: Callable[[mi.Scene, Any], mi.TensorXf]) -> List[mi.TensorXf]:
+        
+        scene = mi.cornell_box()
+        scene["sensor"]["film"]["width"] = w
+        scene["sensor"]["film"]["height"] = h
+        scene = mi.load_dict(scene)
+
+        params = mi.traverse(scene)
+        value = mi.Float(params[k].x)
+        
+        images = []
+        for i in range(n):
+            params[k].x = value + 10.0 * i
+            params.update()
+            
+            img = func(scene, params[k].x)
+            dr.eval(img)
+
+            images.append(img)
+            
+        return images
+
+    images_ref = run(n, func)
+    images_frozen = run(n, dr.freeze(func))
+
+    for (ref, frozen) in zip(images_ref, images_frozen):
+        assert dr.allclose(ref, frozen)
+        
+def test02_cornell_box_native(variants_vec_rgb):
+    if mi.MI_ENABLE_EMBREE:
+        pytest.skip("EMBREE enabled")
     
     w = 16
     h = 16
@@ -77,7 +121,7 @@ def test02_pose_estimation(variants_vec_rgb):
     def optimize(scene, ref, initial_vertex_positions, other):
         params = mi.traverse(scene)
 
-        image = mi.render(scene, params, spp=1, seed = 0)
+        image = mi.render(scene, params, spp=1, seed = 1, seed_grad = 2)
 
         # Evaluate the objective function from the current rendered image
         loss = mse(image, ref)
@@ -148,7 +192,7 @@ def test02_pose_estimation(variants_vec_rgb):
                 
             opt.step()
 
-        image_final = mi.render(scene, spp=4, seed = 0)
+        image_final = mi.render(scene, spp=4, seed = 1, seed_grad = 2)
 
         return image_final, opt["trans"], opt["angle"]
 
@@ -162,7 +206,7 @@ def test02_pose_estimation(variants_vec_rgb):
 
     # NOTE: cannot compare results as errors accumulate and the result will never be the same.
     
-    # assert dr.allclose(trans_ref, trans_frozen, 0.1)
+    # assert dr.allclose(trans_ref, trans_frozen)
     # assert dr.allclose(angle_ref, angle_frozen)
     # assert dr.allclose(img_ref, img_frozen)
 
@@ -361,8 +405,8 @@ def test04_bsdf(variants_vec_rgb, bsdf):
     ],
 )
 def test05_emitter(variants_vec_rgb, emitter):
-    dr.set_log_level(dr.LogLevel.Trace)
-    dr.set_flag(dr.JitFlag.ReuseIndices, False)
+    # dr.set_log_level(dr.LogLevel.Trace)
+    # dr.set_flag(dr.JitFlag.ReuseIndices, False)
     # dr.set_flag(dr.JitFlag.Debug, True)
     
     w = 16
@@ -375,7 +419,7 @@ def test05_emitter(variants_vec_rgb, emitter):
             result = mi.render(scene, spp=1)
         return result
 
-    def load_scene():
+    def load_scene(emitter):
         scene = mi.cornell_box()
         scene["sensor"]["film"]["width"] = w
         scene["sensor"]["film"]["height"] = h
@@ -449,6 +493,106 @@ def test05_emitter(variants_vec_rgb, emitter):
                     "type": "rgb",
                     "value": 1.0,
                 },
+            }
+
+        scene = mi.load_dict(scene)
+        return scene
+
+    def run(n: int, func: Callable[[mi.Scene], mi.TensorXf]) -> List[mi.TensorXf]:
+
+        scene = load_scene(emitter)
+
+        images = []
+        for i in range(n):
+            
+            img = func(scene)
+            dr.eval(img)
+
+            images.append(img)
+            
+        return images
+    
+
+    images_ref = run(n, func)
+    scene = load_scene(emitter)
+    del scene
+    gc.collect()
+    gc.collect()
+    images_frozen = run(n, dr.freeze(func))
+    
+    for (ref, frozen) in zip(images_ref, images_frozen):
+        assert dr.allclose(ref, frozen)
+        
+        
+@pytest.mark.parametrize(
+    "integrator",
+    [
+        "direct",
+        "path",
+        "prb",
+        # "prb_basic",
+        "direct_projective",
+        # "prb_projective",
+        "moment",
+        "ptracer",
+    ],
+)
+def test06_integrators(variants_vec_rgb, integrator):
+    # dr.set_log_level(dr.LogLevel.Trace)
+    # dr.set_flag(dr.JitFlag.ReuseIndices, False)
+    # dr.set_flag(dr.JitFlag.Debug, True)
+    
+    w = 16
+    h = 16
+
+    n = 5
+    
+    def func(scene: mi.Scene) -> mi.TensorXf:
+        with dr.profile_range("render"):
+            result = mi.render(scene, spp=1)
+        return result
+
+    def load_scene():
+        scene = mi.cornell_box()
+        scene["sensor"]["film"]["width"] = w
+        scene["sensor"]["film"]["height"] = h
+
+        if integrator == "path":
+            scene["integrator"] = {
+                "type": "path",
+                "max_depth": 4,
+            }
+        elif integrator == "direct":
+            scene["integrator"] = {
+                "type": "direct",
+            }
+        elif integrator == "prb":
+            scene["integrator"] = {
+                "type": "prb",
+            }
+        elif integrator == "prb_basic":
+            scene["integrator"] = {
+                "type": "prb_basic",
+            }
+        elif integrator == "direct_projective":
+            scene["integrator"] = {
+                "type": "direct_projective",
+            }
+        elif integrator == "prb_projective":
+            scene["integrator"] = {
+                "type": "prb_projective",
+            }
+        elif integrator == "moment":
+            scene["integrator"] = {
+                "type": "moment",
+                "nested": {
+                    "type": "path",
+                },
+            }
+        elif integrator == "ptracer":
+            scene["integrator"] = {
+                "type": "ptracer",
+                "max_depth": 8,
             }
 
         scene = mi.load_dict(scene)
