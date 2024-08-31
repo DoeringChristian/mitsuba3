@@ -535,6 +535,7 @@ def test05_emitter(variants_vec_rgb, emitter):
         # "prb_projective",
         "moment",
         "ptracer",
+        "depth",
     ],
 )
 def test06_integrators(variants_vec_rgb, integrator):
@@ -594,6 +595,8 @@ def test06_integrators(variants_vec_rgb, integrator):
                 "type": "ptracer",
                 "max_depth": 8,
             }
+        elif integrator == "depth":
+            scene["integrator"] = {"type": "depth"}
 
         scene = mi.load_dict(scene)
         return scene
