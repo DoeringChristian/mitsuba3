@@ -405,8 +405,8 @@ def test04_bsdf(variants_vec_rgb, bsdf):
     ],
 )
 def test05_emitter(variants_vec_rgb, emitter):
-    # dr.set_log_level(dr.LogLevel.Trace)
-    # dr.set_flag(dr.JitFlag.ReuseIndices, False)
+    dr.set_log_level(dr.LogLevel.Trace)
+    dr.set_flag(dr.JitFlag.ReuseIndices, False)
     # dr.set_flag(dr.JitFlag.Debug, True)
     
     w = 16
@@ -495,7 +495,7 @@ def test05_emitter(variants_vec_rgb, emitter):
                 },
             }
 
-        scene = mi.load_dict(scene)
+        scene = mi.load_dict(scene, parallel = False)
         return scene
 
     def run(n: int, func: Callable[[mi.Scene], mi.TensorXf]) -> List[mi.TensorXf]:
@@ -514,10 +514,12 @@ def test05_emitter(variants_vec_rgb, emitter):
     
 
     images_ref = run(n, func)
-    scene = load_scene(emitter)
-    del scene
-    gc.collect()
-    gc.collect()
+    print("scene1")
+    # scene = load_scene(emitter)
+    # del scene
+    # gc.collect()
+    # gc.collect()
+    print("scene2")
     images_frozen = run(n, dr.freeze(func))
     
     for (ref, frozen) in zip(images_ref, images_frozen):
@@ -621,4 +623,58 @@ def test06_integrators(variants_vec_rgb, integrator):
     images_frozen = run(n, dr.freeze(func))
     
     for (ref, frozen) in zip(images_ref, images_frozen):
+        assert dr.allclose(ref, frozen)
+
+
+@pytest.mark.parametrize("shape", [
+    "mesh",
+])
+def test07_shape(variants_vec_rgb, shape):
+    w = 128
+    h = 128
+
+    n = 5
+    
+    def func(scene: mi.Scene) -> mi.TensorXf:
+        with dr.profile_range("render"):
+            result = mi.render(scene, spp=1)
+        return result
+
+    def load_scene():
+        from mitsuba.scalar_rgb import Transform4f as T
+        scene = mi.cornell_box()
+        scene["sensor"]["film"]["width"] = w
+        scene["sensor"]["film"]["height"] = h
+        del scene["small-box"]
+        del scene["large-box"]
+
+
+        if shape == "mesh":
+            scene["shape"]={
+                "type": "ply",
+                "filename": find_resource("resources/data/common/meshes/teapot.ply"),
+                "to_world": T().scale(0.1),
+            }
+
+        scene = mi.load_dict(scene)
+        return scene
+
+    def run(scene, n: int, func: Callable[[mi.Scene], mi.TensorXf]) -> List[mi.TensorXf]:
+
+        images = []
+        for i in range(n):
+            
+            img = func(scene)
+            dr.eval(img)
+
+            images.append(img)
+            
+        return images
+    
+
+    scene = load_scene()
+    images_ref = run(scene, n, func)
+    images_frozen = run(scene, n, dr.freeze(func))
+    
+    for (i, (ref, frozen)) in enumerate(zip(images_ref, images_frozen)):
         assert dr.allclose(ref, frozen)
