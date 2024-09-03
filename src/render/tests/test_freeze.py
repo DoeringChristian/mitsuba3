@@ -1,9 +1,11 @@
+import os
 from typing import Any, Callable, List
 import pytest
 import drjit as dr
 import mitsuba as mi
 import glob
 import gc
+import numpy as np
 from os.path import join, realpath, dirname, basename, splitext, exists
 
 from mitsuba.scalar_rgb.test.util import find_resource
@@ -628,12 +630,23 @@ def test06_integrators(variants_vec_rgb, integrator):
 
 @pytest.mark.parametrize("shape", [
     "mesh",
+    "disk",
+    "cylinder",
+    "bsplinecurve",
+    "linearcurve",
+    "sdfgrid",
+    # "instance",
+    "sphere",
 ])
 def test07_shape(variants_vec_rgb, shape):
     w = 128
     h = 128
 
     n = 5
+    dr.set_log_level(dr.LogLevel.Trace)
+    dr.set_flag(dr.JitFlag.ReuseIndices, False)
+    dr.set_flag(dr.JitFlag.Debug, True)
+    dr.set_flag(dr.JitFlag.LaunchBlocking, True)
     
     def func(scene: mi.Scene) -> mi.TensorXf:
         with dr.profile_range("render"):
@@ -655,8 +668,77 @@ def test07_shape(variants_vec_rgb, shape):
                 "filename": find_resource("resources/data/common/meshes/teapot.ply"),
                 "to_world": T().scale(0.1),
             }
+        elif shape == "disk":
+            scene["shape"] = {
+                "type": "disk",
+                "material": {
+                    "type": "diffuse",
+                    "reflectance": {
+                        "type": "checkerboard",
+                        "to_uv": mi.ScalarTransform4f().rotate(axis = [1, 0, 0], angle = 45),
+                    },
+                },
+            }
+        elif shape == "cylinder":
+            scene["shape"] = {
+                "type": "cylinder",
+                "radius": 0.3,
+                "material": {"type": "diffuse"},
+                "to_world": mi.ScalarTransform4f().rotate(axis = [1, 0, 0], angle = 10)
+            }
+        elif shape == "bsplinecurve":
+            scene["shape"] = {
+                "type": "bsplinecurve",
+                "to_world": mi.ScalarTransform4f().scale(1.).rotate(axis = [0, 1, 0], angle = 45),
+                "filename": find_resource("resources/data/common/meshes/curve.txt"),
+                "silhouette_sampling_weight": 1.,
+            }
+        elif shape == "linearcurve":
+            scene["shape"] = {
+                "type": "linearcurve",
+                "to_world": mi.ScalarTransform4f().translate([0, -1, 0]).scale(1).rotate(axis = [0, 1, 0], angle = 45),
+                "filename": find_resource("resources/data/common/meshes/curve.txt"),
+            }
+        elif shape == "sdfgrid":
+            scene["shape"] = {
+                "type": "sdfgrid",
+                "bsdf": {"type": "diffuse"},
+                "filename": find_resource("resources/data/docs/scenes/sdfgrid/torus_sdfgrid.vol"),
+            }
+        elif shape == "instance":
+            scene["sg"] = {
+                "type": "shapegroup",
+                "first_object": {
+                    "type": "ply",
+                    "filename": find_resource("resources/data/common/meshes/teapot.ply"),
+                    "bsdf": {
+                        "type": "roughconductor",
+                    },
+                },
+                "second_object": {
+                    "type": "sphere",
+                    "to_world": mi.ScalarTransform4f().scale([1, 1, 1]).translate(
+                        [0, 0, 0]
+                    ),
+                    "bsdf": {
+                        "type": "diffuse",
+                    },
+                },
+            }
+            scene["first_instance"] = {
+                "type": "instance",
+                "shapegroup": {"type": "ref", "id": "sg"},
+            }
+        elif shape == "sphere":
+            scene["shape"] = {
+                "type": "sphere",
+                "center": [0, 0, 0],
+                "radius": 0.5,
+                "bsdf": {"type": "diffuse"},
+            }
+    
 
-        scene = mi.load_dict(scene)
+        scene = mi.load_dict(scene, parallel = False)
         return scene
 
     def run(scene, n: int, func: Callable[[mi.Scene], mi.TensorXf]) -> List[mi.TensorXf]:
@@ -675,6 +757,11 @@ def test07_shape(variants_vec_rgb, shape):
     scene = load_scene()
     images_ref = run(scene, n, func)
     images_frozen = run(scene, n, dr.freeze(func))
+    
+    for (i, (ref, frozen)) in enumerate(zip(images_ref, images_frozen)):
+        os.makedirs(f"out/{shape}", exist_ok=True)
+        mi.util.write_bitmap(f"out/{shape}/ref{i}.jpg", ref)
+        mi.util.write_bitmap(f"out/{shape}/frozen{i}.jpg", frozen)
     
     for (i, (ref, frozen)) in enumerate(zip(images_ref, images_frozen)):
         assert dr.allclose(ref, frozen)

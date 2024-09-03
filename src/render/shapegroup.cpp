@@ -177,6 +177,12 @@ MI_VARIANT void ShapeGroup<Float, Spectrum>::optix_build_gas(const OptixDeviceCo
         build_gas(context, m_shapes, m_accel);
         for (auto &s : m_shapes)
             s->m_dirty = false;
+
+        m_accel_handles.clear();
+        m_accel_handles.push_back(dr::opaque<UInt64>(m_accel.meshes.handle));
+        m_accel_handles.push_back(dr::opaque<UInt64>(m_accel.bspline_curves.handle));
+        m_accel_handles.push_back(dr::opaque<UInt64>(m_accel.linear_curves.handle));
+        m_accel_handles.push_back(dr::opaque<UInt64>(m_accel.custom_shapes.handle));
     }
 }
 #endif
