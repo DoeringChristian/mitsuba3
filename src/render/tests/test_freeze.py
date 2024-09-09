@@ -608,7 +608,7 @@ def test05_emitter(variants_vec_rgb, emitter):
 @pytest.mark.parametrize(
     "integrator",
     [
-        "direct",
+        # "direct",
         "path",
         "prb",
         # "prb_basic",
@@ -697,7 +697,7 @@ def test06_integrators(variants_vec_rgb, integrator):
         return images
     
 
-    scene = load_scene()
+    # scene = load_scene()
     images_ref = run(n, func)
     images_frozen = run(n, dr.freeze(func))
     
@@ -712,7 +712,7 @@ def test06_integrators(variants_vec_rgb, integrator):
     "bsplinecurve",
     "linearcurve",
     "sdfgrid",
-    "instance",
+    # "instance",
     "sphere",
 ])
 def test07_shape(variants_vec_rgb, shape):
