@@ -8,7 +8,7 @@
 #include <nanobind/stl/vector.h>
 #include <nanobind/stl/tuple.h>
 #include <drjit/python.h>
-#include "drjit/traversable_base.h"
+#include <drjit/traversable_base.h>
 
 MI_PY_EXPORT(BSDFSample) {
     MI_PY_IMPORT_TYPES()

@@ -91,6 +91,8 @@ public:
     using Sensor::m_needs_sample_2;
     using Sensor::m_needs_sample_3;
     using Sensor::m_film;
+
+    DR_TRAMPOLINE_TRAVERSE_CB(Sensor)
 };
 
 template <typename Ptr, typename Cls> void bind_sensor_generic(Cls &cls) {
@@ -174,6 +176,8 @@ MI_PY_EXPORT(Sensor) {
         .def_field(PySensor, m_needs_sample_2, D(Endpoint, m_needs_sample_3))
         .def_field(PySensor, m_needs_sample_3, D(Endpoint, m_needs_sample_3))
         .def_field(PySensor, m_film);
+
+    drjit::bind_traverse(sensor);
 
     bind_sensor_generic<Sensor *>(sensor);
 
