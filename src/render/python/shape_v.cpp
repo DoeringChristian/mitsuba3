@@ -60,6 +60,8 @@ public:
     std::string to_string() const override {
         NB_OVERRIDE(to_string);
     }
+
+    DR_TRAMPOLINE_TRAVERSE_CB(Mesh)
 };
 
 template <typename Ptr, typename Cls> void bind_shape_generic(Cls &cls) {
@@ -234,6 +236,8 @@ MI_PY_EXPORT(Shape) {
         .def_method(Shape, effective_primitive_count)
         .def_method(Shape, precompute_silhouette, "viewpoint"_a);
 
+    drjit::bind_traverse(shape);
+
     bind_shape_generic<Shape *>(shape);
 
     if constexpr (dr::is_array_v<ShapePtr>) {
@@ -245,7 +249,7 @@ MI_PY_EXPORT(Shape) {
     using PyMesh = PyMesh<Float, Spectrum>;
     using ScalarSize = typename Mesh::ScalarSize;
     using Properties = PropertiesV<Float>;
-    MI_PY_TRAMPOLINE_CLASS(PyMesh, Mesh, Shape)
+    auto mesh = MI_PY_TRAMPOLINE_CLASS(PyMesh, Mesh, Shape)
         .def(nb::init<const Properties&>(), "props"_a)
         .def(nb::init<const std::string &, ScalarSize, ScalarSize,
                       const Properties &, bool, bool>(),
@@ -281,6 +285,8 @@ MI_PY_EXPORT(Shape) {
         .def("ray_intersect_triangle", &Mesh::ray_intersect_triangle,
              "index"_a, "ray"_a, "active"_a = true,
              D(Mesh, ray_intersect_triangle));
+
+    drjit::bind_traverse(mesh);
 
     MI_PY_REGISTER_OBJECT("register_mesh", Mesh)
 }
