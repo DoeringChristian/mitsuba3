@@ -608,7 +608,7 @@ def test05_emitter(variants_vec_rgb, emitter):
 @pytest.mark.parametrize(
     "integrator",
     [
-        # "direct",
+        "direct",
         "path",
         "prb",
         # "prb_basic",
