@@ -99,8 +99,17 @@ def test02_cornell_box_native(variants_vec_rgb):
         
 tutorials_dir = realpath(join(dirname(__file__), '../../../tutorials'))
 
-def test02_pose_estimation(variants_vec_rgb):
-
+@pytest.mark.parametrize(
+    "integrator",
+    [
+        "direct",
+        "prb",
+        # "prb_basic",
+        "direct_projective",
+        # "prb_projective",
+    ],
+)
+def test02_pose_estimation(variants_vec_rgb, integrator):
     w = 128
     h = 128
     
@@ -134,7 +143,7 @@ def test02_pose_estimation(variants_vec_rgb):
 
         return image, loss
 
-    def run(optimize, n) -> tuple[mi.TensorXf, mi.Point3f, mi.Float]:
+    def load_scene():
         from mitsuba.scalar_rgb import Transform4f as T
 
         scene = mi.cornell_box()
@@ -165,6 +174,9 @@ def test02_pose_estimation(variants_vec_rgb):
         }
         
         scene = mi.load_dict(scene)
+        return scene
+
+    def run(scene: mi.Scene, optimize, n) -> tuple[mi.TensorXf, mi.Point3f, mi.Float]:
         params = mi.traverse(scene)
         
         params.keep("bunny.vertex_positions")
@@ -201,16 +213,31 @@ def test02_pose_estimation(variants_vec_rgb):
 
     n = 10
 
+    # NOTE:
+    # In this cas, we have to use the same scene object
+    # for the frozen and non-frozen case, as re-loading 
+    # the scene causes mitsuba to render different images, 
+    # leading to diverging descent traijectories.
+
+    scene = load_scene()
+    params = mi.traverse(scene)
+    initial_vertex_positions = mi.Float(params["bunny.vertex_positions"])
+
     print("Reference:")
-    img_ref, trans_ref, angle_ref = run(optimize, n)
+    img_ref, trans_ref, angle_ref = run(scene, optimize, n)
+
+    # Reset parameters:
+    params["bunny.vertex_positions"]=initial_vertex_positions
+    params.update()
+    
     print("Frozen:")
-    img_frozen, trans_frozen, angle_frozen = run(dr.freeze(optimize), n)
+    img_frozen, trans_frozen, angle_frozen = run(scene, dr.freeze(optimize), n)
 
     # NOTE: cannot compare results as errors accumulate and the result will never be the same.
     
-    # assert dr.allclose(trans_ref, trans_frozen)
-    # assert dr.allclose(angle_ref, angle_frozen)
-    # assert dr.allclose(img_ref, img_frozen)
+    assert dr.allclose(trans_ref, trans_frozen)
+    assert dr.allclose(angle_ref, angle_frozen)
+    assert dr.allclose(img_ref, img_frozen)
 
 def test03_optimize_color(variants_vec_rgb):
     k = "red.reflectance.value"
