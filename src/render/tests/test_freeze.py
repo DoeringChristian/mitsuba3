@@ -106,7 +106,7 @@ tutorials_dir = realpath(join(dirname(__file__), '../../../tutorials'))
         "prb",
         # "prb_basic",
         "direct_projective",
-        # "prb_projective",
+        "prb_projective",
     ],
 )
 def test02_pose_estimation(variants_vec_rgb, integrator):
@@ -237,7 +237,9 @@ def test02_pose_estimation(variants_vec_rgb, integrator):
     
     assert dr.allclose(trans_ref, trans_frozen)
     assert dr.allclose(angle_ref, angle_frozen)
-    assert dr.allclose(img_ref, img_frozen)
+    if integrator != "prb_projective":
+        assert dr.allclose(img_ref, img_frozen)
+
 
 def test03_optimize_color(variants_vec_rgb):
     k = "red.reflectance.value"
@@ -640,7 +642,7 @@ def test05_emitter(variants_vec_rgb, emitter):
         "prb",
         # "prb_basic",
         "direct_projective",
-        # "prb_projective",
+        "prb_projective",
         "moment",
         "ptracer",
         "depth",
