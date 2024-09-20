@@ -128,7 +128,14 @@ class SGD(Optimizer):
     :math:`\\varepsilon` is the learning rate, and :math:`\\mu` is
     the momentum parameter.
     """
-    def __init__(self, lr, momentum=0, mask_updates=False, params:dict=None):
+
+    DRJIT_STRUCT = {
+        "state": dict,
+        "variables": dict,
+        "lr_default_v": None,
+    }
+
+    def __init__(self, lr, momentum=0, mask_updates=False, params: dict = None):
         """
         Parameter ``lr``:
             learning rate
@@ -224,6 +231,11 @@ class Adam(Optimizer):
     Enabling ``mask_updates`` avoids these two issues. This is similar to
     `PyTorch's SparseAdam optimizer <https://pytorch.org/docs/1.9.0/generated/torch.optim.SparseAdam.html>`_.
     """
+    DRJIT_STRUCT = {
+        "state": dict,
+        "variables": dict,
+        "lr_default_v": None,
+    }
     def __init__(self, lr, beta_1=0.9, beta_2=0.999, epsilon=1e-8,
                  mask_updates=False, uniform=False, params: dict=None):
         """
