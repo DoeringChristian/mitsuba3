@@ -688,7 +688,7 @@ def test05_emitter(variants_vec_rgb, emitter):
         "direct",
         "path",
         "prb",
-        # "prb_basic",
+        "prb_basic",
         "direct_projective",
         "prb_projective",
         "moment",
