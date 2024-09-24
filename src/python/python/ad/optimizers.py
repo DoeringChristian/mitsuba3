@@ -235,6 +235,8 @@ class Adam(Optimizer):
         "state": dict,
         "variables": dict,
         "lr_default_v": None,
+        "lr_v": dict,
+        "t": dict,
     }
     def __init__(self, lr, beta_1=0.9, beta_2=0.999, epsilon=1e-8,
                  mask_updates=False, uniform=False, params: dict=None):
@@ -269,7 +271,7 @@ class Adam(Optimizer):
         self.epsilon = epsilon
         self.mask_updates = mask_updates
         self.uniform = uniform
-        self.t = defaultdict(lambda: 0)
+        self.t = defaultdict(lambda: mi.UInt(0))
         super().__init__(lr, params)
 
     def step(self):
@@ -277,7 +279,7 @@ class Adam(Optimizer):
         for k, p in self.variables.items():
             self.t[k] += 1
             lr_scale = dr.sqrt(1 - self.beta_2 ** self.t[k]) / (1 - self.beta_1 ** self.t[k])
-            lr_scale = dr.opaque(dr.detached_t(mi.Float), lr_scale, shape=1)
+            dr.make_opaque(lr_scale)
 
             lr_t = self.lr_v[k] * lr_scale
             g_p = dr.grad(p)
@@ -319,7 +321,7 @@ class Adam(Optimizer):
         shape = dr.shape(p) if dr.is_tensor_v(p) else dr.width(p)
         self.state[key] = (dr.zeros(dr.detached_t(p), shape),
                            dr.zeros(dr.detached_t(p), shape))
-        self.t[key] = 0
+        self.t[key] = mi.UInt(0)
 
     def __repr__(self):
         return ('Adam[\n'
