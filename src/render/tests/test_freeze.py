@@ -931,7 +931,7 @@ def test07_shape(variants_vec_rgb, shape):
         assert dr.allclose(ref, frozen)
 
 
-@pytest.mark.parametrize("optimizer", ["sgd"])
+@pytest.mark.parametrize("optimizer", ["sgd", "adam"])
 def test07_optimizer(variants_vec_rgb, optimizer):
     k = "red.reflectance.value"
     w = 128
@@ -943,7 +943,6 @@ def test07_optimizer(variants_vec_rgb, optimizer):
 
     def optimize(scene, opt, image_ref):
         params = mi.traverse(scene)
-        params.keep(k)
         params.update(opt)
 
         image = mi.render(scene, params, spp=1)
@@ -983,7 +982,9 @@ def test07_optimizer(variants_vec_rgb, optimizer):
 
     image_ref, param_ref = run(n, optimize)
 
-    image_frozen, param_frozen = run(n, dr.freeze(optimize))
+    frozen = dr.freeze(optimize)
+    image_frozen, param_frozen = run(n, frozen)
+    assert frozen.n_recordings == 2
 
     # Optimizing the reflectance is not as prone to divergence,
     # therefore we can test if the two methods produce the same results
