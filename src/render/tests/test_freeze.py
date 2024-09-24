@@ -793,8 +793,8 @@ def test06_integrators(variants_vec_rgb, integrator):
     ],
 )
 def test07_shape(variants_vec_rgb, shape):
-    w = 16
-    h = 16
+    w = 128
+    h = 128
 
     n = 5
     # dr.set_log_level(dr.LogLevel.Trace)
@@ -880,12 +880,15 @@ def test07_shape(variants_vec_rgb, shape):
                     "bsdf": {
                         "type": "roughconductor",
                     },
+                    "to_world": mi.ScalarTransform4f()
+                    .translate([0.5, 0, 0])
+                    .scale([0.2, 0.2, 0.2]),
                 },
                 "second_object": {
                     "type": "sphere",
                     "to_world": mi.ScalarTransform4f()
-                    .scale([1, 1, 1])
-                    .translate([0, 0, 0]),
+                    .translate([-0.5, 0, 0])
+                    .scale([0.2, 0.2, 0.2]),
                     "bsdf": {
                         "type": "diffuse",
                     },
@@ -922,10 +925,10 @@ def test07_shape(variants_vec_rgb, shape):
     images_ref = run(scene, n, func)
     images_frozen = run(scene, n, dr.freeze(func))
 
-    # for (i, (ref, frozen)) in enumerate(zip(images_ref, images_frozen)):
-    #     os.makedirs(f"out/{shape}", exist_ok=True)
-    #     mi.util.write_bitmap(f"out/{shape}/ref{i}.jpg", ref)
-    #     mi.util.write_bitmap(f"out/{shape}/frozen{i}.jpg", frozen)
+    for (i, (ref, frozen)) in enumerate(zip(images_ref, images_frozen)):
+        os.makedirs(f"out/{shape}", exist_ok=True)
+        mi.util.write_bitmap(f"out/{shape}/ref{i}.jpg", ref)
+        mi.util.write_bitmap(f"out/{shape}/frozen{i}.jpg", frozen)
 
     for i, (ref, frozen) in enumerate(zip(images_ref, images_frozen)):
         assert dr.allclose(ref, frozen)
