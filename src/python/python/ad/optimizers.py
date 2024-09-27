@@ -15,8 +15,8 @@ class Optimizer:
         Parameter ``params`` (:py:class:`dict`):
             Dictionary-like object containing parameters to optimize.
         """
-        self.lr   = defaultdict(lambda: self.lr_default)
-        self.lr_v = defaultdict(lambda: self.lr_default_v)
+        self.lr   = {}
+        self.lr_v = {}
 
         self.set_learning_rate(lr)
         self.variables = {}
@@ -161,6 +161,12 @@ class SGD(Optimizer):
     def step(self):
         """Take a gradient step"""
         for k, p in self.variables.items():
+            # Ensure that self.lr and self.lr_v contain key
+            if k not in self.lr:
+                self.lr[k] = self.lr_default
+            if k not in self.lr_v:
+                self.lr_v[k] = self.lr_default_v
+            
             g_p = dr.grad(p)
             shape = dr.shape(g_p)
             if shape == 0:
@@ -271,12 +277,20 @@ class Adam(Optimizer):
         self.epsilon = epsilon
         self.mask_updates = mask_updates
         self.uniform = uniform
-        self.t = defaultdict(lambda: mi.UInt(0))
+        self.t = {}
         super().__init__(lr, params)
 
     def step(self):
         """Take a gradient step"""
         for k, p in self.variables.items():
+            # Ensure that self.t, self.lr and self.lr_v contain key
+            if k not in self.t:
+                self.t[k] = mi.UInt(0)
+            if k not in self.lr:
+                self.lr[k] = self.lr_default
+            if k not in self.lr_v:
+                self.lr_v[k] = self.lr_default_v
+
             self.t[k] += 1
             lr_scale = dr.sqrt(1 - self.beta_2 ** self.t[k]) / (1 - self.beta_1 ** self.t[k])
             dr.make_opaque(lr_scale)
