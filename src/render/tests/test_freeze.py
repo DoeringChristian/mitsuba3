@@ -28,7 +28,7 @@ def test01_cornell_box(variants_vec_rgb):
         scene = mi.cornell_box()
         scene["sensor"]["film"]["width"] = w
         scene["sensor"]["film"]["height"] = h
-        scene = mi.load_dict(scene)
+        scene = mi.load_dict(scene, parallel = False)
 
         params = mi.traverse(scene)
         value = mi.Float(params[k].x)
@@ -992,3 +992,79 @@ def test07_optimizer(variants_vec_rgb, optimizer):
     # Optimizing the reflectance is not as prone to divergence,
     # therefore we can test if the two methods produce the same results
     assert dr.allclose(param_ref, param_frozen)
+    
+@pytest.mark.parametrize(
+    "medium",
+    [
+        "homogeneous",
+        "heterogeneous",
+    ],
+)
+def test08_medium(variants_vec_rgb, medium):
+    # dr.set_log_level(dr.LogLevel.Trace)
+    # dr.set_flag(dr.JitFlag.ReuseIndices, False)
+    # dr.set_flag(dr.JitFlag.Debug, True)
+
+    w = 16
+    h = 16
+
+    n = 5
+
+    def func(scene: mi.Scene) -> mi.TensorXf:
+        with dr.profile_range("render"):
+            result = mi.render(scene, spp=1)
+        return result
+
+    def load_scene():
+        scene = mi.cornell_box()
+        scene["sensor"]["film"]["width"] = w
+        scene["sensor"]["film"]["height"] = h
+        scene["integrator"] = {"type": "volpath"}
+        scene["sensor"]["medium"] = {"type": "ref", "id": "fog"}
+
+        if medium == "homogeneous":
+            scene["sensor"]["medium"] = {
+                "type": "homogeneous",
+                "albedo": {"type": "rgb", "value": [0.99, 0.9, 0.96]},
+                "sigma_t": {
+                    "type": "rgb",
+                    "value": [0.5, 0.25, 0.8],
+                },
+            }
+        elif medium == "heterogeneous":
+            scene["sensor"]["medium"] = {
+                "type": "heterogeneous",
+                "albedo": {"type": "rgb", "value": [0.99, 0.9, 0.96]},
+                "sigma_t": {
+                    "type": "gridvolume",
+                    "filename": find_resource("resources/data/docs/scenes/textures/albedo.vol"),
+                },
+            }
+
+        scene = mi.load_dict(scene, parallel=False)
+        return scene
+
+    def run(n: int, func: Callable[[mi.Scene], mi.TensorXf]) -> List[mi.TensorXf]:
+        scene = load_scene()
+
+        images = []
+        for i in range(n):
+            img = func(scene)
+            dr.eval(img)
+
+            images.append(img)
+
+        return images
+
+    # scene = load_scene()
+    images_ref = run(n, func)
+    images_frozen = run(n, dr.freeze(func))
+    
+    for (i, (ref, frozen)) in enumerate(zip(images_ref, images_frozen)):
+        os.makedirs(f"out/{medium}", exist_ok=True)
+        mi.util.write_bitmap(f"out/{medium}/ref{i}.jpg", ref)
+        mi.util.write_bitmap(f"out/{medium}/frozen{i}.jpg", frozen)
+
+    for ref, frozen in zip(images_ref, images_frozen):
+        assert dr.allclose(ref, frozen)
+        
