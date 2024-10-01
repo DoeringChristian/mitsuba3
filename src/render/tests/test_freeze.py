@@ -1058,12 +1058,78 @@ def test08_medium(variants_vec_rgb, medium):
 
     # scene = load_scene()
     images_ref = run(n, func)
-    images_frozen = run(n, dr.freeze(func))
+    frozen = dr.freeze(func)
+    images_frozen = run(n, frozen)
+    
+    assert frozen.n_recordings < n
     
     for (i, (ref, frozen)) in enumerate(zip(images_ref, images_frozen)):
         os.makedirs(f"out/{medium}", exist_ok=True)
         mi.util.write_bitmap(f"out/{medium}/ref{i}.jpg", ref)
         mi.util.write_bitmap(f"out/{medium}/frozen{i}.jpg", frozen)
+
+    for ref, frozen in zip(images_ref, images_frozen):
+        assert dr.allclose(ref, frozen)
+
+
+@pytest.mark.parametrize(
+    "sampler",
+    [
+        "independent",
+        "stratified",
+        "multijitter",
+        "orthogonal",
+        "ldsampler",
+    ],
+)
+def test09_sampler(variants_vec_rgb, sampler):
+    # dr.set_log_level(dr.LogLevel.Trace)
+    # dr.set_flag(dr.JitFlag.ReuseIndices, False)
+    # dr.set_flag(dr.JitFlag.Debug, True)
+
+    w = 16
+    h = 16
+
+    n = 5
+
+    def func(scene: mi.Scene) -> mi.TensorXf:
+        with dr.profile_range("render"):
+            result = mi.render(scene, spp=1)
+        return result
+
+    def load_scene():
+        scene = mi.cornell_box()
+        scene["sensor"]["film"]["width"] = w
+        scene["sensor"]["film"]["height"] = h
+
+        scene["sensor"]["sampler"] = {"type": sampler}
+
+        scene = mi.load_dict(scene, parallel=False)
+        return scene
+
+    def run(n: int, func: Callable[[mi.Scene], mi.TensorXf]) -> List[mi.TensorXf]:
+        scene = load_scene()
+
+        images = []
+        for i in range(n):
+            img = func(scene)
+            dr.eval(img)
+
+            images.append(img)
+
+        return images
+
+    # scene = load_scene()
+    images_ref = run(n, func)
+    frozen = dr.freeze(func)
+    images_frozen = run(n, frozen)
+
+    assert frozen.n_recordings < n
+    
+    for (i, (ref, frozen)) in enumerate(zip(images_ref, images_frozen)):
+        os.makedirs(f"out/{sampler}", exist_ok=True)
+        mi.util.write_bitmap(f"out/{sampler}/ref{i}.jpg", ref)
+        mi.util.write_bitmap(f"out/{sampler}/frozen{i}.jpg", frozen)
 
     for ref, frozen in zip(images_ref, images_frozen):
         assert dr.allclose(ref, frozen)
