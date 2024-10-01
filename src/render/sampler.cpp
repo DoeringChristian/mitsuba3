@@ -136,18 +136,6 @@ MI_VARIANT void PCG32Sampler<Float, Spectrum>::schedule_state() {
     dr::schedule(m_rng.inc, m_rng.state);
 }
 
-MI_VARIANT void
-PCG32Sampler<Float, Spectrum>::traverse_1_cb_ro(void *payload,
-                                                void (*fn)(void *, uint64_t)) const {
-    traverse_1_fn_ro(m_rng, payload, fn);
-}
-
-MI_VARIANT void
-PCG32Sampler<Float, Spectrum>::traverse_1_cb_rw(void *payload,
-                                                uint64_t (*fn)(void *, uint64_t)) {
-    traverse_1_fn_rw(m_rng, payload, fn);
-}
-
 MI_VARIANT
 PCG32Sampler<Float, Spectrum>::PCG32Sampler(const PCG32Sampler &sampler)
     : Base(sampler) {

@@ -169,8 +169,6 @@ public:
 
     void seed(UInt32 seed, uint32_t wavefront_size = (uint32_t) -1) override;
     void schedule_state() override;
-    void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t)) const override;
-    void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t)) override;
 
     MI_DECLARE_CLASS()
 protected:
@@ -180,8 +178,8 @@ protected:
     PCG32Sampler(const PCG32Sampler &sampler);
 protected:
     PCG32 m_rng;
-    //
-    // DR_TRAVERSE_CB(Base, m_rng);
+
+    DR_TRAVERSE_CB(Base, m_rng);
 };
 
 MI_EXTERN_CLASS(Sampler)
