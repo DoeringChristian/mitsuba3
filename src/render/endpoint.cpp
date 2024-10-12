@@ -118,6 +118,7 @@ MI_VARIANT void Endpoint<Float, Spectrum>::parameters_changed(const std::vector<
     }
 }
 
+MI_TRAVERSE_CB_IMPL(Endpoint, Object, m_to_world, m_medium)
 MI_IMPLEMENT_CLASS_VARIANT(Endpoint, Object)
 MI_INSTANTIATE_CLASS(Endpoint)
 NAMESPACE_END(mitsuba)

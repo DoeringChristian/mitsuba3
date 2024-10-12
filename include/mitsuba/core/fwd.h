@@ -368,6 +368,29 @@ extern "C" {
                             })
 #endif
 
+#define MI_TRAVERSE_CB_DEC                                                 \
+    public:                                                                    \
+        void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t))     \
+            const override;                                                    \
+        void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t)) \
+            override;
+
+#define MI_TRAVERSE_CB_IMPL(Type, Base, ...)                       \
+MI_VARIANT                                                         \
+void Type<Float, Spectrum>::traverse_1_cb_ro(                      \
+void *payload, void (*fn)(void *, uint64_t)) const {               \
+    if constexpr (!std ::is_same_v<Base, drjit ::TraversableBase>) \
+        Base ::traverse_1_cb_ro(payload, fn);                      \
+    DRJIT_MAP(DR_TRAVERSE_MEMBER_RO, __VA_ARGS__)                  \
+}                                                                  \
+MI_VARIANT                                                         \
+void Type<Float, Spectrum>::traverse_1_cb_rw(                      \
+    void *payload, uint64_t (*fn)(void *, uint64_t)){              \
+    if constexpr (!std ::is_same_v<Base, drjit ::TraversableBase>) \
+        Base ::traverse_1_cb_rw(payload, fn);                      \
+    DRJIT_MAP(DR_TRAVERSE_MEMBER_RW, __VA_ARGS__)                  \
+}
+
 //! @}
 // =============================================================
 
