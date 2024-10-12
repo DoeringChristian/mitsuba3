@@ -261,6 +261,8 @@ MI_VARIANT std::string ShapeGroup<Float, Spectrum>::to_string() const {
     return oss.str();
 }
 
+MI_TRAVERSE_CB_IMPL(ShapeGroup, Base, m_shapes, m_shapes_registry_ids,
+                    m_accel_handles)
 MI_IMPLEMENT_CLASS_VARIANT(ShapeGroup, Shape)
 MI_INSTANTIATE_CLASS(ShapeGroup)
 NAMESPACE_END(mitsuba)

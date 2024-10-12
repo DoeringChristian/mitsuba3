@@ -113,7 +113,7 @@ protected:
     /// Identifier (if available)
     std::string m_id;
 
-    DR_TRAVERSE_CB(Object, m_phase_function);
+    MI_TRAVERSE_CB_DEC
 };
 
 MI_EXTERN_CLASS(Medium)
