@@ -658,7 +658,7 @@ MI_VARIANT std::string Shape<Float, Spectrum>::get_children_string() const {
     return oss.str();
 }
 
-MI_TRAVERSE_CB_IMPL(Shape, Object,
+MI_IMPLEMENT_TRAVERSE_CB(Shape, Object,
     m_bsdf,
     m_emitter,
     m_sensor,

@@ -108,7 +108,7 @@ private:
 
     bool m_has_meshes, m_has_bspline_curves, m_has_linear_curves, m_has_others;
 
-    MI_TRAVERSE_CB_DEC
+    MI_DECLARE_TRAVERSE_CB()
 };
 
 MI_EXTERN_CLASS(ShapeGroup)

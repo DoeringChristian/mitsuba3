@@ -368,14 +368,14 @@ extern "C" {
                             })
 #endif
 
-#define MI_TRAVERSE_CB_DEC                                                 \
-    public:                                                                    \
-        void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t))     \
-            const override;                                                    \
-        void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t)) \
-            override;
+#define MI_DECLARE_TRAVERSE_CB()                                           \
+public:                                                                    \
+    void traverse_1_cb_ro(void *payload, void (*fn)(void *, uint64_t))     \
+        const override;                                                    \
+    void traverse_1_cb_rw(void *payload, uint64_t (*fn)(void *, uint64_t)) \
+        override;
 
-#define MI_TRAVERSE_CB_IMPL(Type, Base, ...)                       \
+#define MI_IMPLEMENT_TRAVERSE_CB(Type, Base, ...)                  \
 MI_VARIANT                                                         \
 void Type<Float, Spectrum>::traverse_1_cb_ro(                      \
 void *payload, void (*fn)(void *, uint64_t)) const {               \

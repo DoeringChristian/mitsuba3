@@ -225,7 +225,7 @@ protected:
     ref<ReconstructionFilter> m_filter;
     ref<Texture> m_srf;
 
-    MI_TRAVERSE_CB_DEC
+    MI_DECLARE_TRAVERSE_CB()
 };
 
 MI_EXTERN_CLASS(Film)

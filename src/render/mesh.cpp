@@ -1858,7 +1858,7 @@ MI_VARIANT bool Mesh<Float, Spectrum>::parameters_grad_enabled() const {
     return dr::grad_enabled(m_vertex_positions);
 }
 
-MI_TRAVERSE_CB_IMPL(Mesh, Base, 
+MI_IMPLEMENT_TRAVERSE_CB(Mesh, Base, 
     m_vertex_positions, 
     m_vertex_normals,
     m_vertex_texcoords, 
