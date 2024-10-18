@@ -648,8 +648,7 @@ protected:
     void traverse_1_cb_ro_cpu(void *payload, void (*fn)(void *, uint64_t)) const;
     void traverse_1_cb_rw_cpu(void *payload, uint64_t (*fn)(void *, uint64_t));
 
-public:
-    MI_TRAVERSE_CB_DEC
+    MI_DECLARE_TRAVERSE_CB()
 };
 
 /// Dummy function which can be called to ensure that the librender shared

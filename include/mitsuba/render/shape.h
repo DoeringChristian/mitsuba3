@@ -1019,7 +1019,7 @@ protected:
     /// True if the shape has called iniatlize() at least once
     bool m_initialized = false;
 
-    MI_TRAVERSE_CB_DEC
+    MI_DECLARE_TRAVERSE_CB()
 };
 
 // -----------------------------------------------------------------------

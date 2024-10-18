@@ -398,7 +398,7 @@ protected:
     bool m_needs_sample_3 = true;
     std::string m_id;
 
-    MI_TRAVERSE_CB_DEC
+    MI_DECLARE_TRAVERSE_CB()
 };
 
 MI_EXTERN_CLASS(Endpoint)

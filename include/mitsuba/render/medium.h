@@ -113,7 +113,7 @@ protected:
     /// Identifier (if available)
     std::string m_id;
 
-    MI_TRAVERSE_CB_DEC
+    MI_DECLARE_TRAVERSE_CB()
 };
 
 MI_EXTERN_CLASS(Medium)
