@@ -10,6 +10,9 @@ from os.path import join, realpath, dirname, basename, splitext, exists
 
 from mitsuba.scalar_rgb.test.util import find_resource
 
+dr.set_log_level(dr.LogLevel.Trace)
+dr.set_flag(dr.JitFlag.ReuseIndices, False)
+
 
 def test01_cornell_box(variants_vec_rgb):
     w = 16
@@ -24,12 +27,15 @@ def test01_cornell_box(variants_vec_rgb):
             result = mi.render(scene, spp=1)
         return result
 
-    def run(n: int, func: Callable[[mi.Scene, Any], mi.TensorXf]) -> List[mi.TensorXf]:
+    def load_scene() -> mi.Scene:
         scene = mi.cornell_box()
         scene["sensor"]["film"]["width"] = w
         scene["sensor"]["film"]["height"] = h
         scene = mi.load_dict(scene, parallel = False)
+        return scene
 
+
+    def run(scene: mi.Scene, n: int, func: Callable[[mi.Scene, Any], mi.TensorXf]) -> List[mi.TensorXf]:
         params = mi.traverse(scene)
         value = mi.Float(params[k].x)
 
@@ -45,8 +51,10 @@ def test01_cornell_box(variants_vec_rgb):
 
         return images
 
-    images_ref = run(n, func)
-    images_frozen = run(n, dr.freeze(func))
+    scene = load_scene()
+    images_ref = run(scene, n, func)
+    scene2 = load_scene()
+    images_frozen = run(scene2, n, dr.freeze(func))
 
     for ref, frozen in zip(images_ref, images_frozen):
         assert dr.allclose(ref, frozen)
