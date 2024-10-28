@@ -123,8 +123,8 @@ def test02_pose_estimation(variants_vec_rgb, integrator):
     # dr.set_flag(dr.JitFlag.Debug, True)
     # dr.set_flag(dr.JitFlag.LaunchBlocking, True)
     # dr.set_flag(dr.JitFlag.OptimizeCalls, False)
-    w = 128
-    h = 128
+    w = 16
+    h = 16
 
     def apply_transformation(initial_vertex_positions, opt, params):
         opt["trans"] = dr.clip(opt["trans"], -0.5, 0.5)
@@ -260,8 +260,8 @@ def test02_pose_estimation(variants_vec_rgb, integrator):
 
 def test03_optimize_color(variants_vec_rgb):
     k = "red.reflectance.value"
-    w = 128
-    h = 128
+    w = 16
+    h = 16
     n = 10
 
     def mse(image, image_ref):
@@ -546,7 +546,7 @@ def test04_bsdf(variants_vec_rgb, bsdf):
             scene["white"] = {
                 "type": bsdf,
             }
-        scene = mi.load_dict(scene)
+        scene = mi.load_dict(scene, parallel = False)
         return scene
 
     scene = load_scene(bsdf)
@@ -801,8 +801,8 @@ def test06_integrators(variants_vec_rgb, integrator):
     ],
 )
 def test07_shape(variants_vec_rgb, shape):
-    w = 128
-    h = 128
+    w = 16
+    h = 16
 
     n = 5
     # dr.set_log_level(dr.LogLevel.Trace)
@@ -945,8 +945,8 @@ def test07_shape(variants_vec_rgb, shape):
 @pytest.mark.parametrize("optimizer", ["sgd", "adam"])
 def test07_optimizer(variants_vec_rgb, optimizer):
     k = "red.reflectance.value"
-    w = 128
-    h = 128
+    w = 16
+    h = 16
     n = 10
 
     def mse(image, image_ref):
