@@ -80,7 +80,7 @@ def test02_cornell_box_native(variants_vec_rgb):
         scene = mi.cornell_box()
         scene["sensor"]["film"]["width"] = w
         scene["sensor"]["film"]["height"] = h
-        scene = mi.load_dict(scene)
+        scene = mi.load_dict(scene, parallel = False)
 
         params = mi.traverse(scene)
         value = mi.Float(params[k].x)
@@ -286,7 +286,7 @@ def test03_optimize_color(variants_vec_rgb):
         }
         scene["sensor"]["film"]["width"] = w
         scene["sensor"]["film"]["height"] = h
-        scene = mi.load_dict(scene)
+        scene = mi.load_dict(scene, parallel = False)
 
         image_ref = mi.render(scene, spp=512)
 
@@ -973,7 +973,7 @@ def test07_optimizer(variants_vec_rgb, optimizer):
         }
         scene["sensor"]["film"]["width"] = w
         scene["sensor"]["film"]["height"] = h
-        scene = mi.load_dict(scene)
+        scene = mi.load_dict(scene, parallel = False)
 
         image_ref = mi.render(scene, spp=512)
 
