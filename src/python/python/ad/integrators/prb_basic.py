@@ -163,11 +163,7 @@ class BasicPRBIntegrator(RBIntegrator):
 
         return (
             L if primal else δL, # Radiance/differential radiance
-<<<<<<< HEAD
-            depth != 0,          # Ray validity flag for alpha blending
-=======
             depth != 0,    # Ray validity flag for alpha blending
->>>>>>> 0b71f8e7 (Updated prb_basic integrator to work with new drjit version)
             [],                  # Empty typle of AOVs
             L                    # State the for differential phase
         )
