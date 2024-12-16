@@ -245,9 +245,17 @@ Class::UnserializeFunctor get_unserialize_functor() { return {}; }
 
 NAMESPACE_END(detail)
 
+// #define MI_REGISTRY_PUT(name, ptr)                                             \
+    if constexpr (dr::is_jit_v<Float>) {                                       \
+        static_assert(std::derived_from<std::remove_pointer_t<decltype(ptr)>,  \
+                                        drjit::TraversableBase>::value);       \
+        jit_registry_put(::mitsuba::detail::get_variant<Float, Spectrum>(),    \
+                         "mitsuba::" name, ptr);                               \
+    }
+
 #define MI_REGISTRY_PUT(name, ptr)                                             \
     if constexpr (dr::is_jit_v<Float>) {                                       \
-        jit_registry_put(::mitsuba::detail::get_variant<Float, Spectrum>(),    \
+        drjit::registry_put(::mitsuba::detail::get_variant<Float, Spectrum>(),    \
                          "mitsuba::" name, ptr);                               \
     }
 
