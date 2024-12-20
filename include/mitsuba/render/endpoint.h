@@ -399,6 +399,7 @@ protected:
     std::string m_id;
 
     MI_DECLARE_TRAVERSE_CB()
+    MI_IMPLEMENT_GET_VARIANT
 };
 
 MI_EXTERN_CLASS(Endpoint)

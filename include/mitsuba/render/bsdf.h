@@ -611,6 +611,7 @@ protected:
     std::string m_id;
 
     DR_TRAVERSE_CB(Object);
+    MI_IMPLEMENT_GET_VARIANT
 };
 
 // -----------------------------------------------------------------------

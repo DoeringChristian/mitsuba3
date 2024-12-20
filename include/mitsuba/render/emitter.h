@@ -96,6 +96,7 @@ protected:
     bool m_dirty = false;
 
     DR_TRAVERSE_CB(Base);
+    MI_IMPLEMENT_GET_VARIANT
 };
 
 MI_EXTERN_CLASS(Emitter)

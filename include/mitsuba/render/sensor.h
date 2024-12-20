@@ -165,6 +165,7 @@ protected:
     bool m_alpha;
 
     DR_TRAVERSE_CB(Base, m_film, m_sampler, m_srf);
+    MI_IMPLEMENT_GET_VARIANT
 };
 
 //! @}
@@ -220,6 +221,7 @@ protected:
     Float m_focus_distance;
 
     DR_TRAVERSE_CB(Base, m_focus_distance);
+    MI_IMPLEMENT_GET_VARIANT
 };
 
 // ========================================================================

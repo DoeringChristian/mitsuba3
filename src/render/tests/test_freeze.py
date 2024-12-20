@@ -10,8 +10,8 @@ from os.path import join, realpath, dirname, basename, splitext, exists
 
 from mitsuba.scalar_rgb.test.util import find_resource
 
-dr.set_log_level(dr.LogLevel.Trace)
-dr.set_flag(dr.JitFlag.ReuseIndices, False)
+# dr.set_log_level(dr.LogLevel.Warn)
+# dr.set_flag(dr.JitFlag.ReuseIndices, False)
 
 
 def test01_cornell_box(variants_vec_rgb):

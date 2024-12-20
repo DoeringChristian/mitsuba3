@@ -1020,6 +1020,7 @@ protected:
     bool m_initialized = false;
 
     MI_DECLARE_TRAVERSE_CB()
+    MI_IMPLEMENT_GET_VARIANT
 };
 
 // -----------------------------------------------------------------------

@@ -596,6 +596,7 @@ protected:
     Scene<Float, Spectrum>* m_scene = nullptr;
 
     MI_DECLARE_TRAVERSE_CB()
+    MI_IMPLEMENT_GET_VARIANT
 };
 
 MI_EXTERN_CLASS(Mesh)

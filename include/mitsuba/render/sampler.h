@@ -157,6 +157,7 @@ protected:
     UInt32 m_sample_index;
 
     DR_TRAVERSE_CB(Object, m_dimension_index, m_sample_index);
+    MI_IMPLEMENT_GET_VARIANT
 };
 
 /// Interface for sampler plugins based on the PCG32 random number generator

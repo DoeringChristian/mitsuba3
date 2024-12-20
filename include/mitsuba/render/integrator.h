@@ -345,6 +345,7 @@ protected:
     std::string m_id;
 
     DR_TRAVERSE_CB(Object)
+    MI_IMPLEMENT_GET_VARIANT
 };
 
 /** \brief Abstract integrator that performs Monte Carlo sampling starting from
@@ -464,6 +465,7 @@ protected:
     uint32_t m_samples_per_pass;
 
     DR_TRAVERSE_CB(Base)
+    MI_IMPLEMENT_GET_VARIANT
 };
 
 /** \brief Abstract integrator that performs *recursive* Monte Carlo sampling
@@ -493,6 +495,7 @@ protected:
     uint32_t m_rr_depth;
 
     DR_TRAVERSE_CB(Base)
+    MI_IMPLEMENT_GET_VARIANT
 };
 
 /** \brief Abstract adjoint integrator that performs Monte Carlo sampling
@@ -582,6 +585,7 @@ protected:
     int m_rr_depth;
 
     DR_TRAVERSE_CB(Base)
+    MI_IMPLEMENT_GET_VARIANT
 };
 
 

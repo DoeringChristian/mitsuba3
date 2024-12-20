@@ -226,6 +226,7 @@ protected:
     ref<Texture> m_srf;
 
     MI_DECLARE_TRAVERSE_CB()
+    MI_IMPLEMENT_GET_VARIANT
 };
 
 MI_EXTERN_CLASS(Film)

@@ -122,6 +122,7 @@ protected:
     std::vector<ScalarFloat> m_max_per_channel;
 
     DR_TRAVERSE_CB(Object)
+    MI_IMPLEMENT_GET_VARIANT
 };
 
 MI_EXTERN_CLASS(VolumeGrid)

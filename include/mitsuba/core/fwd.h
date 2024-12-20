@@ -391,6 +391,11 @@ void Type<Float, Spectrum>::traverse_1_cb_rw(                      \
     DRJIT_MAP(DR_TRAVERSE_MEMBER_RW, __VA_ARGS__)                  \
 }
 
+#define MI_IMPLEMENT_GET_VARIANT                                           \
+        const char *get_variant() const override {                             \
+            return mitsuba::detail::get_variant<Float, Spectrum>();            \
+        }
+
 //! @}
 // =============================================================
 

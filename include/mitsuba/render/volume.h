@@ -121,6 +121,7 @@ protected:
     uint32_t m_channel_count;
 
     DR_TRAVERSE_CB(Object);
+    MI_IMPLEMENT_GET_VARIANT
 };
 
 MI_EXTERN_CLASS(Volume)
