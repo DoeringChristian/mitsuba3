@@ -327,23 +327,23 @@ Scene<Float, Spectrum>::ray_intersect_naive_cpu(const Ray3f &ray, Mask active) c
     return pi.compute_surface_interaction(ray, +RayFlags::All, active);
 }
 
-MI_VARIANT void
-Scene<Float, Spectrum>::traverse_1_cb_ro_cpu(void *payload,
-                                             void (*fn)(void *, uint64_t)) const{
-    
+MI_VARIANT void Scene<Float, Spectrum>::traverse_1_cb_ro_cpu(
+    void *payload, drjit::detail::traverse_callback_ro fn) const {
+
     if constexpr (dr::is_llvm_v<Float>) {
-        NativeState<Float, Spectrum> &s = *(NativeState<Float, Spectrum> *) m_accel;
+        NativeState<Float, Spectrum> &s =
+            *(NativeState<Float, Spectrum> *) m_accel;
         drjit ::traverse_1_fn_ro(s.shapes_registry_ids, payload, fn);
         drjit ::traverse_1_fn_ro(s.func_handle, payload, fn);
     }
 }
 
-MI_VARIANT void
-Scene<Float, Spectrum>::traverse_1_cb_rw_cpu(void *payload,
-                                             uint64_t (*fn)(void *, uint64_t)) {
+MI_VARIANT void Scene<Float, Spectrum>::traverse_1_cb_rw_cpu(
+    void *payload, drjit::detail::traverse_callback_rw fn) {
 
     if constexpr (dr::is_llvm_v<Float>) {
-        NativeState<Float, Spectrum> &s = *(NativeState<Float, Spectrum> *) m_accel;
+        NativeState<Float, Spectrum> &s =
+            *(NativeState<Float, Spectrum> *) m_accel;
         drjit ::traverse_1_fn_rw(s.shapes_registry_ids, payload, fn);
         drjit ::traverse_1_fn_rw(s.func_handle, payload, fn);
     }

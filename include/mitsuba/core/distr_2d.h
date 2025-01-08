@@ -318,27 +318,27 @@ protected:
     /// Total number of slices (in case Dimension > 1)
     uint32_t m_slices;
 
-        
 public:
-void traverse_1_cb_ro(void *payload,
-                      void (*fn)(void *, uint64_t)) const override {
-    if constexpr (!std ::is_same_v<drjit ::TraversableBase,
-                                   drjit ::TraversableBase>)
-        drjit ::TraversableBase ::traverse_1_cb_ro(payload, fn);
-    for (const auto &param_value : m_param_values) {
-        drjit ::traverse_1_fn_ro(param_value, payload, fn);
+    void
+    traverse_1_cb_ro(void *payload,
+                     drjit::detail::traverse_callback_ro fn) const override {
+        if constexpr (!std ::is_same_v<drjit ::TraversableBase,
+                                       drjit ::TraversableBase>)
+            drjit ::TraversableBase ::traverse_1_cb_ro(payload, fn);
+        for (const auto &param_value : m_param_values) {
+            drjit ::traverse_1_fn_ro(param_value, payload, fn);
+        }
     }
-}
-void traverse_1_cb_rw(void *payload,
-                      uint64_t (*fn)(void *, uint64_t)) override {
-    if constexpr (!std ::is_same_v<drjit ::TraversableBase,
-                                   drjit ::TraversableBase>)
-        drjit ::TraversableBase ::traverse_1_cb_rw(payload, fn);
+    void traverse_1_cb_rw(void *payload,
+                          drjit::detail::traverse_callback_rw fn) override {
+        if constexpr (!std ::is_same_v<drjit ::TraversableBase,
+                                       drjit ::TraversableBase>)
+            drjit ::TraversableBase ::traverse_1_cb_rw(payload, fn);
 
-    for (auto &param_value : m_param_values) {
-        drjit ::traverse_1_fn_rw(param_value, payload, fn);
+        for (auto &param_value : m_param_values) {
+            drjit ::traverse_1_fn_rw(param_value, payload, fn);
+        }
     }
-}
 };
 
 /**

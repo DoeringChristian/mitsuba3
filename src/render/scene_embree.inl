@@ -451,18 +451,16 @@ Scene<Float, Spectrum>::ray_intersect_naive_cpu(const Ray3f &ray,
     return ray_intersect_cpu(ray, +RayFlags::All, false, active);
 }
 
-MI_VARIANT void
-Scene<Float, Spectrum>::traverse_1_cb_ro_cpu(void *payload,
-                                             void (*fn)(void *, uint64_t)) const{
-    
+MI_VARIANT void Scene<Float, Spectrum>::traverse_1_cb_ro_cpu(
+    void *payload, drjit::detail::traverse_callback_ro fn) const {
+
     EmbreeState<Float> &s = *(EmbreeState<Float> *) m_accel;
     drjit ::traverse_1_fn_ro(s.shapes_registry_ids, payload, fn);
     drjit ::traverse_1_fn_ro(s.func_handle, payload, fn);
 }
 
-MI_VARIANT void
-Scene<Float, Spectrum>::traverse_1_cb_rw_cpu(void *payload,
-                                             uint64_t (*fn)(void *, uint64_t)) {
+MI_VARIANT void Scene<Float, Spectrum>::traverse_1_cb_rw_cpu(
+    void *payload, drjit::detail::traverse_callback_rw fn) {
 
     EmbreeState<Float> &s = *(EmbreeState<Float> *) m_accel;
     drjit ::traverse_1_fn_rw(s.shapes_registry_ids, payload, fn);

@@ -644,8 +644,10 @@ protected:
     std::unique_ptr<DiscreteDistribution<Float>> m_silhouette_distr = nullptr;
 
     bool m_shapes_grad_enabled;
-    
-    void traverse_1_cb_ro_cpu(void *payload, void (*fn)(void *, uint64_t)) const;
+
+    void traverse_1_cb_ro_cpu(void *payload,
+                              void (*fn)(void *, uint64_t, const char *,
+                                         const char *)) const;
     void traverse_1_cb_rw_cpu(void *payload, uint64_t (*fn)(void *, uint64_t));
 
     MI_DECLARE_TRAVERSE_CB()
