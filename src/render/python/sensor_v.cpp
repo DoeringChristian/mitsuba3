@@ -1,5 +1,6 @@
 #include <nanobind/nanobind.h> // Needs to be first, to get `ref<T>` caster
 #include <mitsuba/render/sensor.h>
+#include <mitsuba/render/emitter.h> // Has to be included, so that Emitter::CallSupport::Variant is instantiated here
 #include <mitsuba/core/properties.h>
 #include <mitsuba/python/python.h>
 #include <nanobind/trampoline.h>
@@ -200,6 +201,6 @@ MI_PY_EXPORT(Sensor) {
     m.def("orthographic_projection", &orthographic_projection<Float>,
           "film_size"_a, "crop_size"_a, "crop_offset"_a, "near_clip"_a, "far_clip"_a,
           D(orthographic_projection));
-    
+
     dr::bind_traverse(sensor);
 }
