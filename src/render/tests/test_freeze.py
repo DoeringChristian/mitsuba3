@@ -6,6 +6,8 @@ from os.path import join, realpath, dirname
 
 from mitsuba.scalar_rgb.test.util import find_resource
 
+dr.set_flag(dr.JitFlag.Debug, True)
+
 TUTORIALS_DIR = realpath(join(dirname(__file__), "../../../tutorials"))
 EMITTERS = [
     "area",
@@ -182,7 +184,7 @@ def test02_pose_estimation(variants_vec_rgb, integrator, auto_opaque):
 
         params["bunny.vertex_positions"] = dr.ravel(trafo @ initial_vertex_positions)
 
-    def optimize(scene, ref, initial_vertex_positions, other):
+    def optimize(scene, ref):
         params = mi.traverse(scene)
 
         image = mi.render(scene, params, spp=1, seed=1, seed_grad=2)
@@ -254,10 +256,6 @@ def test02_pose_estimation(variants_vec_rgb, integrator, auto_opaque):
                 image, loss = optimize(
                     scene,
                     image_ref,
-                    initial_vertex_positions,
-                    [
-                        params["bunny.vertex_positions"],
-                    ],
                 )
 
             opt.step()
@@ -292,6 +290,152 @@ def test02_pose_estimation(variants_vec_rgb, integrator, auto_opaque):
     if integrator != "prb_projective":
         assert dr.allclose(img_ref, img_frozen, atol=1e-4)
 
+
+@pytest.mark.parametrize(
+    "integrator",
+    [
+        "direct",
+        "prb",
+        "prb_basic",
+        "direct_projective",
+        "prb_projective",
+    ],
+)
+@pytest.mark.parametrize("auto_opaque", [False, True])
+def test02_pose_update(variants_vec_rgb, integrator, auto_opaque):
+    """
+    Tests that it is possible to optimize the pose of an object, when freezing
+    the forward and backward pass. Gradients are propagated through the inputs
+    of the frozen function.
+
+    Updates of the scene geometry is not possible inside of frozen functions,
+    as this would require us to re-build the acceleration structure, which
+    currently cannot be recorded.
+    """
+    w, h = (16, 16)
+    n = 10
+
+    def apply_transformation(initial_vertex_positions, opt, params):
+        opt["trans"] = dr.clip(opt["trans"], -0.5, 0.5)
+        opt["angle"] = dr.clip(opt["angle"], -0.5, 0.5)
+
+        trafo = (
+            mi.Transform4f()
+            .translate([opt["trans"].x, opt["trans"].y, 0.0])
+            .rotate([0, 1, 0], opt["angle"] * 100.0)
+        )
+
+        params["bunny.vertex_positions"] = dr.ravel(trafo @ initial_vertex_positions)
+
+    def optimize(scene, ref, initial_vertex_positions, opt):
+        params = mi.traverse(scene)
+        params.keep("bunny.vertex_positions")
+
+        apply_transformation(initial_vertex_positions, opt, params)
+        params.update()
+
+        image = mi.render(scene, params, spp=1, seed=1, seed_grad=2)
+
+        # Evaluate the objective function from the current rendered image
+        loss = mse(image, ref)
+
+        # Backpropagate through the rendering process
+        dr.backward(loss)
+
+        opt.step()
+
+        return image, loss
+
+    frozen = dr.freeze(optimize, auto_opaque = auto_opaque)
+
+    def load_scene():
+        from mitsuba.scalar_rgb import Transform4f as T
+
+        scene = mi.cornell_box()
+        del scene["large-box"]
+        del scene["small-box"]
+        del scene["green-wall"]
+        del scene["red-wall"]
+        del scene["floor"]
+        del scene["ceiling"]
+        scene["bunny"] = {
+            "type": "ply",
+            "filename": f"{TUTORIALS_DIR}/scenes/meshes/bunny.ply",
+            "to_world": T().scale(6.5),
+            "bsdf": {
+                "type": "diffuse",
+                "reflectance": {"type": "rgb", "value": (0.3, 0.3, 0.75)},
+            },
+        }
+        scene["integrator"] = {
+            "type": "prb",
+        }
+        scene["sensor"]["film"] = {
+            "type": "hdrfilm",
+            "width": w,
+            "height": h,
+            "rfilter": {"type": "gaussian"},
+            "sample_border": True,
+        }
+
+        scene = mi.load_dict(scene, parallel=True)
+        return scene
+
+    def run(scene: mi.Scene, optimize, n) -> Tuple[mi.TensorXf, mi.Point3f, mi.Float]:
+        params = mi.traverse(scene)
+
+        params.keep("bunny.vertex_positions")
+        initial_vertex_positions = dr.unravel(
+            mi.Point3f, params["bunny.vertex_positions"]
+        )
+
+        image_ref = mi.render(scene, spp=4)
+
+        opt = mi.ad.Adam(lr=0.025)
+        opt["angle"] = mi.Float(0.25)
+        opt["trans"] = mi.Point3f(0.1, -0.25, 0.0)
+
+        for i in range(n):
+            params = mi.traverse(scene)
+            params.keep("bunny.vertex_positions")
+
+            with dr.profile_range("optimize"):
+                image, loss = optimize(
+                    scene,
+                    image_ref,
+                    initial_vertex_positions,
+                    opt,
+                )
+
+        image_final = mi.render(scene, spp=4, seed=1, seed_grad=2)
+
+        return image_final, opt["trans"], opt["angle"]
+
+    # NOTE:
+    # In this case, we have to use the same scene object
+    # for the frozen and non-frozen case, as re-loading
+    # the scene causes mitsuba to render different images,
+    # leading to diverging descent trajectories.
+
+    scene = load_scene()
+    params = mi.traverse(scene)
+    initial_vertex_positions = mi.Float(params["bunny.vertex_positions"])
+
+    img_ref, trans_ref, angle_ref = run(scene, optimize, n)
+
+    # Reset parameters:
+    params["bunny.vertex_positions"] = initial_vertex_positions
+    params.update()
+
+    img_frozen, trans_frozen, angle_frozen = run(scene, frozen, n)
+
+    # NOTE: cannot compare results as errors accumulate and the result will never be the same.
+
+    assert dr.allclose(trans_ref, trans_frozen)
+    assert dr.allclose(angle_ref, angle_frozen)
+    assert frozen.n_recordings == 2
+    if integrator != "prb_projective":
+        assert dr.allclose(img_ref, img_frozen, atol=1e-4)
 
 @pytest.mark.parametrize("auto_opaque", [False, True])
 def test03_optimize_color(variants_vec_rgb, auto_opaque):

@@ -5,6 +5,7 @@
 #include <mitsuba/render/mesh.h>
 #include <mitsuba/render/scene.h>
 #include <mitsuba/render/integrator.h>
+#include <drjit/freeze.h>
 
 #if defined(MI_ENABLE_EMBREE)
 #  include "scene_embree.inl"
@@ -501,8 +502,15 @@ MI_VARIANT void Scene<Float, Spectrum>::parameters_changed(const std::vector<std
     }
 
     if (accel_is_dirty) {
-        if constexpr (dr::is_cuda_v<Float>)
-            accel_parameters_changed_gpu();
+        if constexpr (dr::is_cuda_v<Float>){
+            drjit::custom_fn<Float::Backend>(
+                [](Scene<Float, Spectrum> *scene) {
+                    scene->accel_parameters_changed_gpu();
+                    return 0;
+                },
+                this);
+            // accel_parameters_changed_gpu();
+        }
         else
             accel_parameters_changed_cpu();
 
